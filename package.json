@@ -1,0 +1,23 @@
+{
+  "name": "pesopulse",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npx nuxt prepare && cd api && python -m venv venv && venv\\Scripts\\pip install -r requirements.txt",
+    "dev": "concurrently --names \"NUXT,FASTAPI\" --prefix-colors \"cyan,yellow\" \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "nuxt dev",
+    "dev:backend": "cd api && venv\\Scripts\\python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload",
+    "build": "nuxt build",
+    "build:frontend": "nuxt build",
+    "postinstall": "nuxt prepare"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.13.1",
+    "@vite-pwa/nuxt": "^0.10.6",
+    "concurrently": "^9.1.2",
+    "nuxt": "^3.17.7"
+  },
+  "dependencies": {
+    "firebase": "^12.13.0"
+  }
+}
