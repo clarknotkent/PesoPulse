@@ -20,8 +20,6 @@ PesoPulse is a Progressive Web App for tracking personal income and expenses acr
 - **Python FastAPI** gateway on the backend
 - **Cloud Firestore** as the system of record — never touched directly by the browser
 
-It was originally built for a Filipino household (₱ is the default currency), but the codebase is generic enough to adapt to any single-currency context.
-
 ---
 
 ## Table of Contents
