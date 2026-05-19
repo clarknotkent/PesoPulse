@@ -15,7 +15,7 @@
           v-else
           to="/auth"
           class="press text-sm font-medium text-[var(--text)]"
-        >Sign in</NuxtLink>
+        >Log in</NuxtLink>
       </div>
     </header>
 

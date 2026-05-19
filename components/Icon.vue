@@ -51,6 +51,8 @@ import {
   EyeOff,
   Loader,
   CircleDot,
+  Mail,
+  Lock,
 } from 'lucide-vue-next'
 
 defineOptions({ inheritAttrs: false })
@@ -112,6 +114,8 @@ const map: Record<string, any> = {
   'eye-off': EyeOff,
   loader: Loader,
   dot: CircleDot,
+  mail: Mail,
+  lock: Lock,
 }
 
 const resolved = computed(() => map[props.name] ?? null)

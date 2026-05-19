@@ -4,6 +4,7 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   sendEmailVerification,
+  sendPasswordResetEmail,
   reauthenticateWithCredential,
   getRedirectResult,
   EmailAuthProvider,
@@ -113,6 +114,11 @@ export function useAuth() {
     await sendEmailVerification(user.value)
   }
 
+  async function sendPasswordReset(email: string): Promise<void> {
+    if (!email) throw new Error('email_required')
+    await sendPasswordResetEmail(getFirebaseAuth(), email)
+  }
+
   async function reauthenticate(password: string): Promise<void> {
     if (!user.value || !user.value.email) throw new Error('not_authenticated')
     const cred = EmailAuthProvider.credential(user.value.email, password)
@@ -207,6 +213,7 @@ export function useAuth() {
     idToken,
     refreshVerified,
     sendVerification,
+    sendPasswordReset,
     reauthenticate,
     signIn,
     signUp,
