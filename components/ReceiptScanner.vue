@@ -12,12 +12,12 @@
       type="button"
       @click="fileInput?.click()"
       :disabled="loading"
-      class="w-full bg-zinc-800 text-white font-medium py-3 rounded-lg text-sm hover:bg-zinc-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+      class="press w-full bg-[var(--bg-input)] text-[var(--text)] font-medium py-3 rounded-lg text-sm disabled:opacity-50 flex items-center justify-center gap-2"
     >
-      <span v-if="loading" class="animate-spin">⏳</span>
-      <span>{{ loading ? 'Scanning…' : '📷 Scan Receipt' }}</span>
+      <Icon :name="loading ? 'loader' : 'scan'" :size="16" :class="loading ? 'animate-spin' : ''" />
+      <span>{{ loading ? 'Scanning…' : 'Scan receipt' }}</span>
     </button>
-    <p v-if="error" class="text-red-400 text-xs mt-1">{{ error }}</p>
+    <p v-if="error" class="text-[var(--c-expense)] text-xs mt-1">{{ error }}</p>
   </div>
 </template>
 

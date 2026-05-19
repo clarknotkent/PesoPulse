@@ -1,205 +1,170 @@
 <template>
-  <div class="min-h-screen bg-[#0a0a0a] text-white">
+  <div class="page">
     <!-- Header -->
-    <header class="px-4 pt-10 pb-4">
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <p class="text-zinc-400 text-xs uppercase tracking-widest">PesoPulse</p>
-          <p class="text-white text-sm font-medium truncate max-w-[200px]">{{ initialized ? user?.email : '' }}</p>
-        </div>
-        <div class="flex items-center gap-4">
-          <NuxtLink to="/settings" class="text-zinc-500 hover:text-white text-sm transition">⚙</NuxtLink>
-          <button @click="signOut" class="text-zinc-500 hover:text-white text-sm transition">
-            Sign out
-          </button>
-        </div>
+    <header class="page-header flex items-center justify-between">
+      <div class="flex flex-col gap-0.5 min-w-0">
+        <Logo />
+        <p class="text-[var(--text-subtle)] text-[11px] truncate max-w-[240px] ml-9">
+          {{ initialized ? user?.email : '' }}
+        </p>
       </div>
-
-      <!-- Balance Card -->
-      <div class="bg-zinc-900 rounded-2xl p-5">
-        <p class="text-zinc-400 text-xs mb-1">Net Balance</p>
-        <p
-          class="text-3xl font-bold"
-          :class="balance >= 0 ? 'text-white' : 'text-red-400'"
-        >{{ formatPHP(balance) }}</p>
-        <div class="flex gap-6 mt-4">
-          <div>
-            <p class="text-zinc-500 text-xs">Income</p>
-            <p class="text-emerald-400 font-medium text-sm">{{ formatPHP(totalIncome) }}</p>
-          </div>
-          <div>
-            <p class="text-zinc-500 text-xs">Expenses</p>
-            <p class="text-red-400 font-medium text-sm">{{ formatPHP(totalExpense) }}</p>
-          </div>
-        </div>
-      </div>
+      <NuxtLink to="/settings" class="press w-10 h-10 rounded-xl border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] flex items-center justify-center shrink-0" aria-label="Settings">
+        <Icon name="settings" :size="18" />
+      </NuxtLink>
     </header>
 
-    <!-- Add Transaction Toggle -->
-    <div class="px-4 mb-4">
-      <button
-        @click="showForm = !showForm"
-        class="w-full bg-white text-black font-medium py-3 rounded-xl text-sm hover:bg-zinc-200 transition"
-      >{{ showForm ? 'Cancel' : '+ Add Transaction' }}</button>
-    </div>
+    <div class="page-body">
+      <!-- Notification banner (gated to actually-not-granted, supported state) -->
+      <NotifPermissionBanner v-if="showNotifBanner" class="mb-10" />
 
-    <!-- Add Transaction Form -->
-    <Transition name="slide">
-      <div v-if="showForm" class="px-4 mb-4">
-        <div class="bg-zinc-900 rounded-2xl p-5 space-y-3">
-          <ReceiptScanner @parsed="onReceiptParsed" />
-
-          <!-- Income / Expense toggle -->
-          <div class="flex gap-2">
-            <button
-              v-for="t in (['expense', 'income'] as const)"
-              :key="t"
-              @click="form.type = t"
-              :class="[
-                'flex-1 py-2 rounded-lg text-sm font-medium transition',
-                form.type === t
-                  ? t === 'income' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
-                  : 'bg-zinc-800 text-zinc-400',
-              ]"
-            >{{ t === 'income' ? 'Income' : 'Expense' }}</button>
-          </div>
-
-          <input
-            v-model="form.amount"
-            type="number"
-            placeholder="Amount (₱)"
-            min="0.01"
-            step="0.01"
-            class="w-full bg-zinc-800 text-white placeholder-zinc-500 rounded-lg px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-zinc-600"
-          />
-
-          <select
-            v-model="form.category"
-            class="w-full bg-zinc-800 text-white rounded-lg px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-zinc-600"
+      <!-- Hero card: balance + period chips + bounded strip -->
+      <section class="page-section">
+        <Transition name="swap" mode="out-in">
+          <DashboardSkeleton v-if="initialLoading" key="skeleton" />
+          <div
+            v-else
+            key="hero"
+            class="hero-card bg-[var(--bg-surface)] border border-[var(--border)] rounded-3xl p-6"
           >
-            <option value="" disabled>Select category</option>
-            <option v-for="cat in filteredCategories" :key="cat.id" :value="cat.name">
-              {{ cat.icon }} {{ cat.name }}
-            </option>
-          </select>
-
-          <input
-            v-model="form.notes"
-            type="text"
-            placeholder="Notes (optional)"
-            class="w-full bg-zinc-800 text-white placeholder-zinc-500 rounded-lg px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-zinc-600"
-          />
-
-          <p v-if="formError" class="text-red-400 text-xs">{{ formError }}</p>
-
-          <button
-            @click="addTransaction"
-            :disabled="submitting"
-            class="w-full bg-white text-black font-medium py-3 rounded-lg text-sm hover:bg-zinc-200 transition disabled:opacity-50"
-          >{{ submitting ? 'Saving…' : 'Save Transaction' }}</button>
-        </div>
-      </div>
-    </Transition>
-
-    <!-- Transaction List -->
-    <div class="px-4 pb-12">
-      <h2 class="text-zinc-400 text-xs uppercase tracking-widest mb-3">Transactions</h2>
-
-      <p v-if="deleteError" class="text-red-400 text-xs mb-2">{{ deleteError }}</p>
-
-      <div v-if="loading" class="text-zinc-500 text-sm text-center py-12">Loading…</div>
-
-      <div v-else-if="transactions.length === 0" class="text-zinc-600 text-sm text-center py-12">
-        No transactions yet. Add one above.
-      </div>
-
-      <div v-else class="space-y-2">
-        <div
-          v-for="tx in transactions"
-          :key="tx.id"
-          class="bg-zinc-900 rounded-xl overflow-hidden"
-        >
-          <div class="px-4 py-3 flex items-center justify-between">
-            <div class="min-w-0 mr-3">
-              <p class="text-white text-sm font-medium">{{ tx.category }}</p>
-              <p class="text-zinc-500 text-xs truncate">
-                {{ tx.date }}{{ tx.notes ? ' · ' + tx.notes : '' }}
-              </p>
+            <div class="flex items-baseline justify-between gap-3">
+              <p class="label">Net balance</p>
+              <p v-if="stale" class="text-[var(--text-subtle)] text-[10px] tracking-wider syncing">syncing…</p>
             </div>
-            <div class="flex items-center gap-3 shrink-0">
-              <p
-                class="font-medium text-sm"
-                :class="tx.type === 'income' ? 'text-emerald-400' : 'text-red-400'"
-              >{{ tx.type === 'income' ? '+' : '-' }}{{ formatPHP(tx.amount) }}</p>
-              <button
-                @click="startEdit(tx)"
-                class="text-zinc-600 hover:text-white transition text-xs leading-none"
-              >✎</button>
-              <button
-                @click="deleteTransaction(tx.id)"
-                class="text-zinc-600 hover:text-red-400 transition text-xs leading-none"
-              >✕</button>
-            </div>
-          </div>
 
-          <!-- Inline edit form -->
-          <div v-if="editingId === tx.id" class="px-4 pb-4 space-y-3 border-t border-zinc-800">
-            <div class="flex gap-2 pt-3">
+            <p
+              class="text-5xl font-semibold tabular-nums tracking-tightest mt-2"
+              :class="netBalance >= 0 ? 'text-[var(--text)]' : 'text-[var(--c-expense)]'"
+            >{{ formatPHP(netBalance) }}</p>
+            <p class="text-[var(--text-muted)] text-sm tabular-nums mt-2">{{ periodLabel }}</p>
+
+            <!-- Period chips -->
+            <div class="flex gap-2 mt-5">
               <button
-                v-for="t in (['expense', 'income'] as const)"
-                :key="t"
-                @click="editForm.type = t"
+                v-for="p in (['day', 'week', 'month'] as const)"
+                :key="p"
+                @click="setHeroPeriod(p)"
                 :class="[
-                  'flex-1 py-2 rounded-lg text-sm font-medium transition',
-                  editForm.type === t
-                    ? t === 'income' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
-                    : 'bg-zinc-800 text-zinc-400',
+                  'press rounded-full px-3 py-1 text-xs font-medium border transition-colors',
+                  heroPeriod === p
+                    ? 'bg-emerald-500 text-white border-transparent'
+                    : 'bg-transparent text-[var(--text-muted)] border-[var(--border)]',
                 ]"
-              >{{ t === 'income' ? 'Income' : 'Expense' }}</button>
+              >{{ chipLabel(p) }}</button>
             </div>
 
-            <input
-              v-model="editForm.amount"
-              type="number"
-              placeholder="Amount (₱)"
-              min="0.01"
-              step="0.01"
-              class="w-full bg-zinc-800 text-white placeholder-zinc-500 rounded-lg px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-zinc-600"
-            />
-
-            <select
-              v-model="editForm.category"
-              class="w-full bg-zinc-800 text-white rounded-lg px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-zinc-600"
+            <!-- Period-bounded strip -->
+            <div
+              class="mt-5 grid grid-cols-3 divide-x divide-[var(--border)] border-t border-[var(--border)] strip"
+              :class="{ flicker: chipFlicker }"
             >
-              <option value="" disabled>Select category</option>
-              <option v-for="cat in filteredEditCategories" :key="cat.id" :value="cat.name">
-                {{ cat.icon }} {{ cat.name }}
-              </option>
-            </select>
-
-            <input
-              v-model="editForm.notes"
-              type="text"
-              placeholder="Notes (optional)"
-              class="w-full bg-zinc-800 text-white placeholder-zinc-500 rounded-lg px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-zinc-600"
-            />
-
-            <p v-if="editError" class="text-red-400 text-xs">{{ editError }}</p>
-
-            <div class="flex gap-2">
-              <button
-                @click="saveEdit(tx.id)"
-                :disabled="editSubmitting"
-                class="flex-1 bg-white text-black font-medium py-3 rounded-lg text-sm hover:bg-zinc-200 transition disabled:opacity-50"
-              >{{ editSubmitting ? 'Saving…' : 'Save' }}</button>
-              <button
-                @click="cancelEdit"
-                class="flex-1 bg-zinc-800 text-zinc-400 font-medium py-3 rounded-lg text-sm hover:bg-zinc-700 transition"
-              >Cancel</button>
+              <div class="py-3 pr-3">
+                <p class="text-[var(--text-subtle)] text-[10px]">Income</p>
+                <p class="text-[var(--c-income)] font-semibold text-sm tabular-nums mt-1">{{ formatPHP(periodIncome) }}</p>
+              </div>
+              <div class="py-3 px-3">
+                <p class="text-[var(--text-subtle)] text-[10px]">Expenses</p>
+                <p class="text-[var(--c-expense)] font-semibold text-sm tabular-nums mt-1">{{ formatPHP(periodExpense) }}</p>
+              </div>
+              <div class="py-3 pl-3">
+                <p class="text-[var(--text-subtle)] text-[10px]">Txns</p>
+                <p class="text-[var(--text)] font-semibold text-sm tabular-nums mt-1">{{ periodTxnCount }}</p>
+              </div>
             </div>
           </div>
+        </Transition>
+      </section>
+
+      <!-- Upcoming -->
+      <section v-if="upcoming.length > 0" class="page-section">
+        <p class="label-quiet mb-3">Upcoming</p>
+        <div class="flex gap-2 overflow-x-auto -mx-5 px-5 pb-1">
+          <div
+            v-for="(u, idx) in upcoming"
+            :key="idx"
+            class="border border-[var(--border)] rounded-lg px-3 py-2 min-w-[140px] shrink-0"
+          >
+            <p class="text-[var(--text-subtle)] text-[10px] uppercase tracking-wider">{{ formatDueDate(u.dueDate) }}</p>
+            <p class="text-[var(--text)] text-xs font-medium truncate mt-0.5">{{ u.category }}</p>
+            <p
+              class="text-xs tabular-nums mt-0.5"
+              :class="u.type === 'income' ? 'text-[var(--c-income)]' : 'text-[var(--c-expense)]'"
+            >{{ u.type === 'income' ? '+' : '-' }}{{ formatPHP(u.amount) }}</p>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <!-- Search + Filter -->
+      <section class="page-section">
+        <SearchBar
+          :modelValue="filters.search"
+          :activeCount="activeFilterCount"
+          @update:modelValue="onSearch"
+          @open-filters="filterOpen = true"
+        />
+      </section>
+
+    <FilterDrawer
+      :open="filterOpen"
+      :filters="filters"
+      :categories="categories"
+      @close="filterOpen = false"
+      @apply="onApplyFilters"
+      @reset="onResetFilters"
+    />
+
+    <EditTransactionModal
+      :open="editingTx !== null"
+      :tx="editingTx"
+      :categories="categories"
+      @close="editingTx = null"
+      @save="onEditSave"
+      @delete="onEditDelete"
+    />
+
+    <AddTransactionModal
+      :open="addOpen"
+      :categories="categories"
+      @close="hideAdd"
+      @save="onAddSave"
+    />
+
+      <!-- Recent Transactions -->
+      <section class="page-section pb-12">
+        <NuxtLink
+          to="/history"
+          class="press flex items-center justify-between w-full mb-4 group"
+        >
+          <h2 class="label">Recent transactions</h2>
+          <span class="text-[var(--text-muted)] text-xs flex items-center gap-1 group-hover:text-[var(--text)] transition-colors">View all <Icon name="chevron-right" :size="14" /></span>
+        </NuxtLink>
+
+        <p v-if="deleteError" class="text-[var(--c-expense)] text-xs mb-2">{{ deleteError }}</p>
+
+        <Transition name="swap" mode="out-in">
+          <div v-if="initialLoading" key="skeleton" class="space-y-2">
+            <TransactionRowSkeleton v-for="n in 4" :key="n" />
+          </div>
+
+          <div v-else-if="transactions.length === 0" key="empty" class="text-[var(--text-subtle)] text-sm text-center py-12">
+            No transactions yet. Tap + to add.
+          </div>
+
+          <TransitionGroup v-else key="list" tag="div" name="tx" class="space-y-2 relative">
+            <TransactionListItem
+              v-for="tx in recentTransactions"
+              :key="tx.id"
+              :tx="tx"
+              @select="editingTx = $event"
+            />
+          </TransitionGroup>
+        </Transition>
+
+        <NuxtLink
+          v-if="transactions.length > recentTransactions.length"
+          to="/history"
+          class="press inline-flex items-center gap-1 text-[var(--text-muted)] hover:text-[var(--text)] text-xs mt-4 py-2 mx-auto justify-center w-full"
+        >See all {{ transactions.length }} <Icon name="arrow-right" :size="12" /></NuxtLink>
+      </section>
     </div>
   </div>
 </template>
@@ -225,97 +190,193 @@ interface Category {
   isSystem: boolean
 }
 
-const { user, initialized, signOut } = useAuth()
+interface UpcomingItem {
+  ruleId: string
+  amount: number
+  type: 'income' | 'expense'
+  category: string
+  notes?: string | null
+  dueDate: string
+}
+
+interface AddPayload {
+  type: 'income' | 'expense'
+  amount: number
+  category: string
+  notes: string | null
+  date: string
+}
+
+interface EditPayload extends AddPayload {
+  id: string
+}
+
+type HeroPeriod = 'day' | 'week' | 'month'
+
+const { user, initialized } = useAuth()
 const api = useApi()
+const toast = useToast()
+const budgetCheck = useBudgetCheck()
+const { open: addOpen, hide: hideAdd } = useAddTransaction()
 
-const transactions = ref<Transaction[]>([])
-const categories = ref<Category[]>([])
-const loading = ref(true)
-const showForm = ref(false)
-const submitting = ref(false)
-const formError = ref('')
+const editingTx = ref<Transaction | null>(null)
+const filterOpen = ref(false)
 const deleteError = ref('')
+const { filters, reset: resetFilters, buildQuery, hasActive } = useTxnFilters()
+const activeFilterCount = computed(() => (hasActive.value ? 1 : 0))
 
-const form = reactive({
-  type: 'expense' as 'income' | 'expense',
-  amount: '',
-  category: '',
-  notes: '',
-})
+const uidKey = computed(() => user.value?.uid ?? 'anon')
 
-const editingId = ref<string | null>(null)
-const editForm = reactive({
-  type: 'expense' as 'income' | 'expense',
-  amount: '',
-  category: '',
-  notes: '',
-})
-const editSubmitting = ref(false)
-const editError = ref('')
+const txCache = useCache<Transaction[]>(
+  computed(() => `dash:txns:${uidKey.value}:${buildQuery()}`),
+  () => api.get<Transaction[]>(`/api/transactions/${user.value!.uid}${buildQuery()}`),
+)
+const catCache = useCache<Category[]>(
+  computed(() => `dash:cats:${uidKey.value}`),
+  () => api.get<Category[]>(`/api/categories/${user.value!.uid}`),
+)
+const upCache = useCache<UpcomingItem[]>(
+  computed(() => `dash:upcoming:${uidKey.value}`),
+  () => api.get<UpcomingItem[]>(`/api/recurring/${user.value!.uid}/upcoming?days=7`).catch(() => [] as UpcomingItem[]),
+)
 
-const balance = computed(() =>
+const transactions = computed<Transaction[]>(() => txCache.data.value ?? [])
+const categories = computed<Category[]>(() => catCache.data.value ?? [])
+const upcoming = computed<UpcomingItem[]>(() => upCache.data.value ?? [])
+
+const initialLoading = computed(() => txCache.isLoading.value && !txCache.data.value)
+const stale = computed(() => txCache.isStale.value || catCache.isStale.value)
+
+const netBalance = computed(() =>
   transactions.value.reduce(
     (sum, tx) => (tx.type === 'income' ? sum + tx.amount : sum - tx.amount),
     0,
   ),
 )
-const totalIncome = computed(() =>
-  transactions.value
-    .filter((tx) => tx.type === 'income')
-    .reduce((sum, tx) => sum + tx.amount, 0),
-)
-const totalExpense = computed(() =>
-  transactions.value
-    .filter((tx) => tx.type === 'expense')
-    .reduce((sum, tx) => sum + tx.amount, 0),
-)
-const filteredCategories = computed(() =>
-  categories.value.filter((cat) => cat.type === form.type),
-)
-const filteredEditCategories = computed(() =>
-  categories.value.filter((cat) => cat.type === editForm.type),
-)
 
-async function loadData() {
-  const uid = user.value?.uid
-  if (!uid) return
-  loading.value = true
-  try {
-    const [txList, catList] = await Promise.all([
-      api.get<Transaction[]>(`/api/transactions/${uid}`),
-      api.get<Category[]>(`/api/categories/${uid}`),
-    ])
-    transactions.value = txList
-    categories.value = catList
-  } finally {
-    loading.value = false
-  }
+const recentTransactions = computed(() => transactions.value.slice(0, 5))
+
+// Hero period chips
+const heroPeriod = ref<HeroPeriod>('week')
+const chipFlicker = ref(false)
+
+function chipLabel(p: HeroPeriod): string {
+  return p === 'day' ? 'Day' : p === 'week' ? 'Week' : 'Month'
 }
 
-async function addTransaction() {
-  formError.value = ''
-  if (!form.amount || !form.category) {
-    formError.value = 'Amount and category are required'
-    return
+function periodBounds(p: HeroPeriod, now: Date = new Date()): { from: string; to: string } {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const iso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  if (p === 'day') {
+    return { from: iso(now), to: iso(now) }
   }
-  submitting.value = true
+  if (p === 'week') {
+    const day = now.getDay()
+    const offset = day === 0 ? -6 : 1 - day
+    const monday = new Date(now)
+    monday.setDate(now.getDate() + offset)
+    const sunday = new Date(monday)
+    sunday.setDate(monday.getDate() + 6)
+    return { from: iso(monday), to: iso(sunday) }
+  }
+  const start = new Date(now.getFullYear(), now.getMonth(), 1)
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  return { from: `${start.getFullYear()}-${pad(start.getMonth() + 1)}-01`, to: iso(end) }
+}
+
+const periodFilteredTxns = computed(() => {
+  const { from, to } = periodBounds(heroPeriod.value)
+  return transactions.value.filter((tx) => tx.date >= from && tx.date <= to)
+})
+const periodIncome = computed(() =>
+  periodFilteredTxns.value.filter((tx) => tx.type === 'income').reduce((s, tx) => s + tx.amount, 0),
+)
+const periodExpense = computed(() =>
+  periodFilteredTxns.value.filter((tx) => tx.type === 'expense').reduce((s, tx) => s + tx.amount, 0),
+)
+const periodTxnCount = computed(() => periodFilteredTxns.value.length)
+
+function setHeroPeriod(p: HeroPeriod) {
+  if (p === heroPeriod.value) return
+  chipFlicker.value = true
+  heroPeriod.value = p
+  setTimeout(() => { chipFlicker.value = false }, 140)
+}
+
+const periodLabel = computed(() => {
+  const now = new Date()
+  const { from, to } = periodBounds(heroPeriod.value, now)
+  if (heroPeriod.value === 'day') {
+    return new Date(from).toLocaleDateString('en-PH', { weekday: 'long', month: 'short', day: 'numeric' })
+  }
+  if (heroPeriod.value === 'week') {
+    const fromS = new Date(from).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })
+    const toS = new Date(to).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })
+    return `Week of ${fromS} – ${toS}`
+  }
+  return now.toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })
+})
+
+const fcm = useFcm()
+const showNotifBanner = computed(() => fcm.status.value === 'default')
+
+function formatDueDate(iso: string): string {
+  const d = new Date(iso)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const diff = Math.round((d.getTime() - today.getTime()) / 86400000)
+  if (diff === 0) return 'Today'
+  if (diff === 1) return 'Tomorrow'
+  if (diff < 7) return `In ${diff}d`
+  return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })
+}
+
+function onSearch(val: string) {
+  filters.value.search = val
+}
+
+function onApplyFilters(f: typeof filters.value) {
+  filters.value = f
+}
+
+function onResetFilters() {
+  resetFilters()
+}
+
+function breachPeriodAdj(period: 'week' | 'month'): string {
+  return period === 'week' ? 'weekly' : 'monthly'
+}
+
+async function onAddSave(payload: AddPayload) {
   try {
     const uid = user.value!.uid
-    const tx = await api.post<Transaction>(`/api/transactions/${uid}`, {
-      amount: parseFloat(form.amount),
-      type: form.type,
-      category: form.category,
-      notes: form.notes || null,
-    })
-    transactions.value.unshift(tx)
-    showForm.value = false
-    form.amount = ''
-    form.category = ''
-    form.notes = ''
+
+    if (payload.type === 'expense') {
+      const check = await budgetCheck.check(payload.amount, payload.category)
+      if (check?.wouldOverspend) {
+        for (const b of check.breaches) {
+          const cap = b.limit + b.rollover
+          if (b.scope === 'category') {
+            toast.warning(
+              `Over ${b.category} (${breachPeriodAdj(b.period)})`,
+              `${formatPHP(b.spent)} / ${formatPHP(cap)}`,
+            )
+          } else {
+            toast.warning(
+              `Over total ${breachPeriodAdj(b.period)} budget`,
+              `${formatPHP(b.spent)} / ${formatPHP(cap)}`,
+            )
+          }
+        }
+      }
+    }
+
+    await api.post<Transaction>(`/api/transactions/${uid}`, payload)
+    await txCache.refresh()
+    hideAdd()
   } catch (e: unknown) {
-    formError.value = (e as { data?: { detail?: string } })?.data?.detail ?? 'Failed to save'
-  } finally {
-    submitting.value = false
+    const detail = (e as { data?: { detail?: string } })?.data?.detail ?? 'Failed to save'
+    toast.error('Save failed', detail)
   }
 }
 
@@ -324,67 +385,79 @@ async function deleteTransaction(id: string) {
   try {
     const uid = user.value!.uid
     await api.del(`/api/transactions/${uid}/${id}`)
-    transactions.value = transactions.value.filter((tx) => tx.id !== id)
+    await txCache.refresh()
   } catch {
     deleteError.value = 'Failed to delete transaction'
   }
 }
 
-function startEdit(tx: Transaction) {
-  editingId.value = tx.id
-  editForm.type = tx.type
-  editForm.amount = String(tx.amount)
-  editForm.category = tx.category
-  editForm.notes = tx.notes ?? ''
-  editError.value = ''
-}
-
-function cancelEdit() {
-  editingId.value = null
-  editError.value = ''
-}
-
-async function saveEdit(id: string) {
-  editError.value = ''
-  if (!editForm.amount || !editForm.category) {
-    editError.value = 'Amount and category are required'
-    return
-  }
-  editSubmitting.value = true
+async function onEditSave(payload: EditPayload) {
   try {
     const uid = user.value!.uid
-    const updated = await api.put<Transaction>(`/api/transactions/${uid}/${id}`, {
-      amount: parseFloat(editForm.amount),
-      type: editForm.type,
-      category: editForm.category,
-      notes: editForm.notes || null,
-    })
-    const idx = transactions.value.findIndex((tx) => tx.id === id)
-    if (idx !== -1) transactions.value[idx] = updated
-    editingId.value = null
+    const { id, ...body } = payload
+    await api.put<Transaction>(`/api/transactions/${uid}/${id}`, body)
+    await txCache.refresh()
+    editingTx.value = null
   } catch (e: unknown) {
-    editError.value = (e as { data?: { detail?: string } })?.data?.detail ?? 'Failed to update'
-  } finally {
-    editSubmitting.value = false
+    deleteError.value = (e as { data?: { detail?: string } })?.data?.detail ?? 'Failed to update'
   }
 }
 
-function onReceiptParsed({ amount, notes }: { amount: number | null; date: string | null; notes: string | null }) {
-  if (amount !== null) form.amount = String(amount)
-  if (notes) form.notes = notes
+async function onEditDelete(id: string) {
+  await deleteTransaction(id)
+  editingTx.value = null
 }
-
-onMounted(loadData)
 </script>
 
 <style scoped>
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.2s ease;
+.strip {
+  transition: opacity 140ms var(--ease-out);
 }
-.slide-enter-from,
-.slide-leave-to {
+.strip.flicker {
+  opacity: 0.55;
+}
+.syncing {
+  animation: syncing-pulse 1.2s var(--ease-in-out) infinite;
+}
+@keyframes syncing-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.tx-row {
+  transition:
+    background-color 200ms var(--ease-out),
+    transform 160ms var(--ease-out);
+  will-change: transform;
+}
+@media (hover: hover) and (pointer: fine) {
+  .tx-row:hover {
+    background-color: rgb(39 39 42 / 0.7);
+  }
+}
+
+.tx-enter-active {
+  transition:
+    opacity 260ms var(--ease-out),
+    transform 260ms var(--ease-out);
+}
+.tx-leave-active {
+  transition:
+    opacity 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+.tx-enter-from {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(-6px) scale(0.98);
+}
+.tx-leave-to {
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+}
+.tx-move {
+  transition: transform 320ms var(--ease-out);
 }
 </style>

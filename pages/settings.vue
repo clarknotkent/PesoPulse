@@ -1,165 +1,261 @@
 <template>
-  <div class="min-h-screen bg-[#0a0a0a] text-white">
+  <div class="page">
     <!-- Header -->
-    <header class="px-4 pt-10 pb-4">
-      <div class="flex items-center gap-3 mb-6">
-        <NuxtLink to="/" class="text-zinc-500 hover:text-white transition text-lg leading-none">←</NuxtLink>
-        <h1 class="text-white font-medium">Settings</h1>
+    <header class="page-header space-y-5">
+      <div class="flex items-center justify-between">
+        <h1 class="text-[var(--text)] font-medium">Settings</h1>
+        <button
+          @click="signOut"
+          class="press text-[var(--text-subtle)] hover:text-[var(--c-expense)] text-xs inline-flex items-center gap-1"
+        >
+          <Icon name="logout" :size="14" />
+          Sign out
+        </button>
       </div>
 
       <!-- Tab toggle -->
-      <div class="flex gap-1 bg-zinc-900 rounded-xl p-1">
+      <div class="flex gap-1 bg-[var(--bg-input)] rounded-xl p-1 overflow-x-auto">
         <button
-          v-for="tab in (['categories', 'sharing'] as const)"
+          v-for="tab in (['categories', 'sharing', 'recurring', 'appearance', 'app'] as const)"
           :key="tab"
           @click="activeTab = tab"
           :class="[
-            'flex-1 py-2 rounded-lg text-sm font-medium transition capitalize',
-            activeTab === tab ? 'bg-white text-black' : 'text-zinc-400 hover:text-white',
+            'press flex-1 py-2 rounded-lg text-sm font-medium transition capitalize whitespace-nowrap px-3',
+            activeTab === tab ? 'bg-[var(--bg-surface)] text-[var(--text)] shadow-sm' : 'text-[var(--text-muted)]',
           ]"
-        >{{ tab === 'categories' ? 'Categories' : 'Sharing' }}</button>
+        >{{ tabLabel(tab) }}</button>
       </div>
     </header>
 
     <!-- Categories tab -->
-    <div v-if="activeTab === 'categories'" class="px-4 pb-12 space-y-6">
-      <!-- System defaults -->
-      <div>
-        <p class="text-zinc-500 text-xs uppercase tracking-widest mb-2">System</p>
+    <div v-if="activeTab === 'categories'" class="page-body">
+      <!-- System pills -->
+      <section class="page-section">
+        <p class="label mb-3">System</p>
         <div class="flex flex-wrap gap-2">
           <span
             v-for="cat in systemCategories"
             :key="cat.id"
-            class="bg-zinc-900 text-zinc-400 text-xs px-3 py-1.5 rounded-full"
-          >{{ cat.icon }} {{ cat.name }}</span>
+            class="border border-[var(--border)] text-[var(--text-muted)] text-xs px-3 py-1.5 rounded-full inline-flex items-center gap-1.5"
+          >
+            <Icon :name="resolveCatIcon(cat)" :size="12" />
+            {{ cat.name }}
+          </span>
         </div>
-      </div>
+      </section>
 
-      <!-- Custom categories -->
-      <div>
-        <p class="text-zinc-500 text-xs uppercase tracking-widest mb-2">Custom</p>
-        <div v-if="customCategories.length === 0" class="text-zinc-600 text-sm py-4">No custom categories yet.</div>
-        <div v-else class="space-y-2">
+      <!-- Custom — hairline rows -->
+      <section class="page-section">
+        <p class="label mb-3">Custom</p>
+        <p v-if="customCategories.length === 0" class="text-[var(--text-subtle)] text-sm py-2">No custom categories yet.</p>
+        <div v-else class="border-t border-[var(--border)]">
           <div
             v-for="cat in customCategories"
             :key="cat.id"
-            class="bg-zinc-900 rounded-xl px-4 py-3 flex items-center justify-between"
+            class="py-3 border-b border-[var(--border)] flex items-center justify-between gap-3"
           >
-            <div class="flex items-center gap-3">
-              <span class="text-lg">{{ cat.icon }}</span>
-              <div>
-                <p class="text-white text-sm font-medium">{{ cat.name }}</p>
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-8 h-8 rounded-lg bg-[var(--bg-input)] flex items-center justify-center text-[var(--text-muted)] shrink-0">
+                <Icon :name="resolveCatIcon(cat)" :size="14" />
+              </span>
+              <div class="min-w-0">
+                <p class="text-[var(--text)] text-sm font-medium truncate">{{ cat.name }}</p>
                 <span
                   :class="[
-                    'text-xs px-2 py-0.5 rounded-full',
-                    cat.type === 'income' ? 'bg-emerald-900 text-emerald-400' : 'bg-red-900 text-red-400',
+                    'text-[10px] px-1.5 py-0.5 rounded-full inline-block mt-0.5',
+                    cat.type === 'income' ? 'bg-emerald-500/10 text-[var(--c-income)]' : 'bg-red-500/10 text-[var(--c-expense)]',
                   ]"
                 >{{ cat.type }}</span>
               </div>
             </div>
             <button
               @click="deleteCategory(cat.id)"
-              class="text-zinc-600 hover:text-red-400 transition text-sm"
-            >✕</button>
+              class="press text-[var(--text-subtle)] hover:text-[var(--c-expense)] w-8 h-8 flex items-center justify-center shrink-0"
+              aria-label="Delete category"
+            >
+              <Icon name="x" :size="14" />
+            </button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Add category form -->
-      <div class="bg-zinc-900 rounded-2xl p-5 space-y-3">
-        <p class="text-zinc-400 text-xs uppercase tracking-widest">Add Category</p>
+      <!-- Add form (earned) -->
+      <section class="page-section">
+        <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-4 space-y-4">
+          <p class="label">Add category</p>
 
-        <input
-          v-model="newCat.name"
-          type="text"
-          placeholder="Category name"
-          class="w-full bg-zinc-800 text-white placeholder-zinc-500 rounded-lg px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-zinc-600"
-        />
+          <div class="space-y-3">
+            <input
+              v-model="newCat.name"
+              type="text"
+              placeholder="Category name"
+              class="focus-ring w-full bg-[var(--bg-input)] text-[var(--text)] placeholder-[var(--text-subtle)] rounded-lg px-4 py-3 text-sm outline-none"
+            />
 
-        <input
-          v-model="newCat.icon"
-          type="text"
-          placeholder="Icon (e.g. 🏠)"
-          class="w-full bg-zinc-800 text-white placeholder-zinc-500 rounded-lg px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-zinc-600"
-        />
+            <div class="flex gap-2">
+              <button
+                v-for="t in (['expense', 'income'] as const)"
+                :key="t"
+                @click="newCat.type = t"
+                :class="[
+                  'press flex-1 py-2 rounded-lg text-sm font-medium transition',
+                  newCat.type === t
+                    ? t === 'income' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+                    : 'bg-[var(--bg-input)] text-[var(--text-muted)]',
+                ]"
+              >{{ t === 'income' ? 'Income' : 'Expense' }}</button>
+            </div>
+          </div>
 
-        <div class="flex gap-2">
+          <p v-if="catError" class="text-[var(--c-expense)] text-xs">{{ catError }}</p>
+
           <button
-            v-for="t in (['expense', 'income'] as const)"
-            :key="t"
-            @click="newCat.type = t"
-            :class="[
-              'flex-1 py-2 rounded-lg text-sm font-medium transition',
-              newCat.type === t
-                ? t === 'income' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
-                : 'bg-zinc-800 text-zinc-400',
-            ]"
-          >{{ t === 'income' ? 'Income' : 'Expense' }}</button>
+            @click="addCategory"
+            :disabled="catSubmitting"
+            class="press w-full bg-[var(--text)] text-[var(--bg)] font-medium py-3 rounded-lg text-sm disabled:opacity-50 disabled:active:scale-100"
+          >{{ catSubmitting ? 'Adding…' : 'Add category' }}</button>
         </div>
-
-        <p v-if="catError" class="text-red-400 text-xs">{{ catError }}</p>
-
-        <button
-          @click="addCategory"
-          :disabled="catSubmitting"
-          class="w-full bg-white text-black font-medium py-3 rounded-lg text-sm hover:bg-zinc-200 transition disabled:opacity-50"
-        >{{ catSubmitting ? 'Adding…' : 'Add Category' }}</button>
-      </div>
+      </section>
     </div>
 
     <!-- Sharing tab -->
-    <div v-if="activeTab === 'sharing'" class="px-4 pb-12 space-y-6">
-      <!-- Grants list -->
-      <div>
-        <p class="text-zinc-500 text-xs uppercase tracking-widest mb-2">Access Granted To</p>
-        <div v-if="grants.length === 0" class="text-zinc-600 text-sm py-4">No one has access.</div>
-        <div v-else class="space-y-2">
+    <div v-if="activeTab === 'sharing'" class="page-body">
+      <!-- Hairline list -->
+      <section class="page-section">
+        <p class="label mb-3">Access granted to</p>
+        <p v-if="grants.length === 0" class="text-[var(--text-subtle)] text-sm py-2">No one has access.</p>
+        <div v-else class="border-t border-[var(--border)]">
           <div
             v-for="grant in grants"
             :key="grant.id"
-            class="bg-zinc-900 rounded-xl px-4 py-3 flex items-center justify-between"
+            class="py-4 border-b border-[var(--border)] flex items-center justify-between gap-3"
           >
-            <div>
-              <p class="text-white text-sm font-medium">{{ grant.viewerEmail }}</p>
-              <p class="text-zinc-500 text-xs">{{ formatGrantDate(grant.grantedAt) }}</p>
+            <div class="min-w-0">
+              <p class="text-[var(--text)] text-sm font-medium truncate">{{ grant.viewerEmail }}</p>
+              <p class="text-[var(--text-subtle)] text-xs tabular-nums mt-0.5">{{ formatGrantDate(grant.grantedAt) }}</p>
             </div>
             <button
               @click="revokeGrant(grant.id)"
-              class="text-zinc-600 hover:text-red-400 transition text-sm"
+              class="press text-[var(--text-subtle)] hover:text-[var(--c-expense)] text-xs px-2 py-1 rounded shrink-0"
             >Revoke</button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Add grant form -->
-      <div class="bg-zinc-900 rounded-2xl p-5 space-y-3">
-        <p class="text-zinc-400 text-xs uppercase tracking-widest">Grant Access</p>
+      <!-- Grant form (earned) -->
+      <section class="page-section">
+        <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-4 space-y-4">
+          <p class="label">Grant access</p>
 
-        <input
-          v-model="shareEmail"
-          type="email"
-          placeholder="Email address"
-          class="w-full bg-zinc-800 text-white placeholder-zinc-500 rounded-lg px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-zinc-600"
-        />
+          <input
+            v-model="shareEmail"
+            type="email"
+            placeholder="Email address"
+            class="focus-ring w-full bg-[var(--bg-input)] text-[var(--text)] placeholder-[var(--text-subtle)] rounded-lg px-4 py-3 text-sm outline-none"
+          />
 
-        <p v-if="shareError" class="text-red-400 text-xs">{{ shareError }}</p>
+          <p v-if="shareError" class="text-[var(--c-expense)] text-xs">{{ shareError }}</p>
 
-        <button
-          @click="grantAccess"
-          :disabled="shareSubmitting"
-          class="w-full bg-white text-black font-medium py-3 rounded-lg text-sm hover:bg-zinc-200 transition disabled:opacity-50"
-        >{{ shareSubmitting ? 'Granting…' : 'Grant Access' }}</button>
-      </div>
+          <button
+            @click="grantAccess"
+            :disabled="shareSubmitting"
+            class="press w-full bg-[var(--text)] text-[var(--bg)] font-medium py-3 rounded-lg text-sm disabled:opacity-50 disabled:active:scale-100"
+          >{{ shareSubmitting ? 'Granting…' : 'Grant access' }}</button>
+        </div>
+      </section>
 
-      <!-- Share link -->
-      <div v-if="grants.length > 0" class="bg-zinc-900 rounded-2xl p-5">
-        <p class="text-zinc-400 text-xs mb-1">Your Share Link</p>
-        <p class="font-mono text-xs text-zinc-300 break-all mb-3">{{ shareUrl }}</p>
-        <button
-          @click="copyLink"
-          class="w-full bg-zinc-800 text-white font-medium py-3 rounded-lg text-sm hover:bg-zinc-700 transition"
-        >{{ copied ? 'Copied!' : '📋 Copy Link' }}</button>
-      </div>
+      <!-- Share link (earned — copy CTA) -->
+      <section v-if="grants.length > 0" class="page-section">
+        <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-4 space-y-3">
+          <p class="label">Your share link</p>
+          <p class="font-mono text-xs text-[var(--text-muted)] break-all">{{ shareUrl }}</p>
+          <button
+            @click="copyLink"
+            class="press w-full bg-[var(--bg-input)] text-[var(--text)] font-medium py-3 rounded-lg text-sm inline-flex items-center justify-center gap-2"
+          >
+            <Icon :name="copied ? 'check' : 'share'" :size="14" />
+            {{ copied ? 'Copied' : 'Copy link' }}
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Recurring tab -->
+    <div v-if="activeTab === 'recurring'" class="page-body">
+      <section class="page-section">
+        <NuxtLink
+          to="/recurring"
+          class="press flex items-center justify-between border-b border-t border-[var(--border)] py-4"
+        >
+          <div>
+            <p class="text-[var(--text)] text-sm font-medium">Recurring transactions</p>
+            <p class="text-[var(--text-subtle)] text-xs mt-0.5">Manage automatic income & bills.</p>
+          </div>
+          <Icon name="chevron-right" :size="16" class="text-[var(--text-subtle)]" />
+        </NuxtLink>
+      </section>
+    </div>
+
+    <!-- Appearance tab -->
+    <div v-if="activeTab === 'appearance'" class="page-body">
+      <section class="page-section">
+        <p class="label mb-3">Theme</p>
+        <div class="grid grid-cols-3 gap-2">
+          <button
+            v-for="opt in themeOptions"
+            :key="opt.value"
+            @click="setTheme(opt.value)"
+            :class="[
+              'press py-3 rounded-lg text-sm font-medium capitalize inline-flex flex-col items-center gap-1.5 border',
+              themeChoice === opt.value
+                ? 'bg-[var(--text)] text-[var(--bg)] border-transparent'
+                : 'bg-transparent text-[var(--text-muted)] border-[var(--border)]',
+            ]"
+          >
+            <Icon :name="opt.icon" :size="16" />
+            {{ opt.value }}
+          </button>
+        </div>
+        <p class="text-[var(--text-subtle)] text-xs mt-3">Currently: {{ effectiveTheme }}</p>
+      </section>
+    </div>
+
+    <!-- App tab — install + about -->
+    <div v-if="activeTab === 'app'" class="page-body">
+      <section class="page-section">
+        <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-5">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-[var(--text)] text-sm font-medium">{{ installed ? 'Installed' : 'Install PesoPulse' }}</p>
+              <p class="text-[var(--text-subtle)] text-xs mt-1">
+                {{ installed
+                  ? 'Running as an installed app.'
+                  : (canInstall
+                      ? 'Add to your home screen for an app-like experience.'
+                      : (isIos
+                        ? 'On iOS: Share → Add to Home Screen.'
+                        : 'Install not available on this browser yet.')) }}
+              </p>
+            </div>
+            <button
+              v-if="canInstall && !installed"
+              @click="promptInstall"
+              class="press shrink-0 bg-emerald-500 text-white font-medium py-2 px-4 rounded-lg text-sm inline-flex items-center gap-1.5"
+            >
+              <Icon name="plus" :size="14" :stroke-width="2.5" />
+              Install
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <p class="label mb-2">About</p>
+        <p class="text-[var(--text-muted)] text-sm leading-relaxed max-w-prose">
+          PesoPulse is a personal finance tracker for the Philippine Peso. Built as a Progressive Web App; works online,
+          installable to your home screen, and ready for offline navigation.
+        </p>
+      </section>
     </div>
   </div>
 </template>
@@ -183,14 +279,30 @@ interface Grant {
   grantedAt: string
 }
 
-const { user } = useAuth()
+const { user, signOut } = useAuth()
 const api = useApi()
-const activeTab = ref<'categories' | 'sharing'>('categories')
+const { choice: themeChoice, effective: effectiveTheme, setTheme } = useTheme()
+const { canInstall, installed, prompt: promptInstall, isIos } = useInstallPrompt()
+
+type Tab = 'categories' | 'sharing' | 'recurring' | 'appearance' | 'app'
+const activeTab = ref<Tab>('categories')
+
+function tabLabel(t: Tab): string {
+  if (t === 'appearance') return 'Theme'
+  if (t === 'app') return 'App'
+  return t
+}
+
+const themeOptions = [
+  { value: 'system' as const, icon: 'monitor' },
+  { value: 'light' as const, icon: 'sun' },
+  { value: 'dark' as const, icon: 'moon' },
+]
 
 const categories = ref<Category[]>([])
 const catError = ref('')
 const catSubmitting = ref(false)
-const newCat = reactive({ name: '', icon: '', type: 'expense' as 'income' | 'expense' })
+const newCat = reactive({ name: '', type: 'expense' as 'income' | 'expense' })
 
 const systemCategories = computed(() => categories.value.filter((c) => c.isSystem))
 const customCategories = computed(() => categories.value.filter((c) => !c.isSystem))
@@ -207,6 +319,25 @@ const shareUrl = computed(() => {
   }
   return ''
 })
+
+const ICON_KEYWORDS: Array<[RegExp, string]> = [
+  [/food|meal|grocer|restaurant|drink|coffee|snack/i, 'receipt'],
+  [/transport|fuel|gas|fare|commute|ride|taxi|grab/i, 'arrow-right'],
+  [/util|bill|electric|water|internet|phone|rent/i, 'wallet'],
+  [/health|medic|pharma|hospital/i, 'sparkles'],
+  [/salary|pay|wage|allowance|bonus/i, 'trend-up'],
+  [/save|fund|emergency|goal/i, 'piggy'],
+  [/shop|cloth|gift/i, 'tag'],
+  [/entertain|movie|fun|game|stream/i, 'sparkles'],
+  [/school|tuition|book|edu/i, 'list'],
+  [/travel|trip|hotel|flight/i, 'arrow-right'],
+]
+
+function resolveCatIcon(cat: Category): string {
+  const m = ICON_KEYWORDS.find(([re]) => re.test(cat.name))
+  if (m) return m[1]
+  return cat.type === 'income' ? 'trend-up' : 'tag'
+}
 
 function formatGrantDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' })
@@ -230,8 +361,8 @@ async function loadGrants() {
 
 async function addCategory() {
   catError.value = ''
-  if (!newCat.name.trim() || !newCat.icon.trim()) {
-    catError.value = 'Name and icon are required'
+  if (!newCat.name.trim()) {
+    catError.value = 'Name is required'
     return
   }
   catSubmitting.value = true
@@ -239,12 +370,11 @@ async function addCategory() {
     const uid = user.value!.uid
     const cat = await api.post<Category>(`/api/categories/${uid}`, {
       name: newCat.name.trim(),
-      icon: newCat.icon.trim(),
+      icon: '',
       type: newCat.type,
     })
     categories.value.push(cat)
     newCat.name = ''
-    newCat.icon = ''
   } catch (e: unknown) {
     catError.value = (e as { data?: { detail?: string } })?.data?.detail ?? 'Failed to add category'
   } finally {

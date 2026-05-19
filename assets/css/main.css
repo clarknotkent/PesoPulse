@@ -1,0 +1,242 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f6f7f9;
+  --bg-surface: #ffffff;
+  --bg-input: #f0f1f4;
+  --text: #0a0c12;
+  --text-muted: #5f6470;
+  --text-subtle: #8c92a0;
+  --border: #e6e7ec;
+
+  --accent: #10b981;
+  --accent-soft: rgba(16, 185, 129, 0.12);
+
+  /* Semantic income / expense / warn — adjusts per theme for contrast */
+  --c-income: #059669;
+  --c-expense: #dc2626;
+  --c-warn: #b45309;
+  --c-info: #0369a1;
+
+  /* Emil-inspired easing curves */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Semantic z-scale */
+  --z-nav: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+}
+
+.dark {
+  --bg: #08090b;
+  --bg-surface: #131418;
+  --bg-input: #1c1d22;
+  --text: #f4f4f5;
+  --text-muted: #a1a1aa;
+  --text-subtle: #6b6e76;
+  --border: #25262c;
+
+  --accent: #10b981;
+  --accent-soft: rgba(16, 185, 129, 0.14);
+
+  /* Punchier semantic colors on dark surfaces */
+  --c-income: #34d399;
+  --c-expense: #f87171;
+  --c-warn: #fbbf24;
+  --c-info: #38bdf8;
+}
+
+html,
+body,
+#__nuxt {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  font-family: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Numerics default to tabular when used near ₱ */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle gradient text helper */
+.gradient-text {
+  background: linear-gradient(180deg, var(--text) 0%, var(--text-muted) 130%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Press feedback for all interactive elements that opt in */
+.press {
+  transition: transform 160ms var(--ease-out);
+  will-change: transform;
+}
+.press:active {
+  transform: scale(0.97);
+}
+.press-strong {
+  transition: transform 160ms var(--ease-out);
+  will-change: transform;
+}
+.press-strong:active {
+  transform: scale(0.93);
+}
+
+/* Hover gating — only fire hover styles on real pointers */
+@media (hover: none) {
+  .no-touch-hover:hover {
+    background-color: revert;
+    color: revert;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 80ms !important;
+  }
+}
+
+/* Page transitions */
+html, body { overflow-x: hidden; }
+
+.page-wrap {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+}
+
+/* Shared focus ring for inputs/buttons across the app */
+.focus-ring {
+  transition:
+    box-shadow 160ms var(--ease-out),
+    background-color 160ms var(--ease-out);
+}
+.focus-ring:focus,
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--accent), 0 0 0 4px var(--accent-soft);
+}
+
+/* Page layout primitives */
+.page {
+  min-height: 100dvh;
+  padding-bottom: 7rem;
+  background: var(--bg);
+  color: var(--text);
+}
+.page-header {
+  padding: 2.5rem 1.25rem 1.5rem;
+}
+.page-body {
+  padding: 0 1.25rem;
+}
+.page-section + .page-section {
+  margin-top: 3rem;
+}
+
+/* Hairline divider */
+.hairline {
+  border-top: 1px solid var(--border);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--border);
+}
+
+/* Labels — use sparingly */
+.label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  font-weight: 500;
+}
+.label-quiet {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Stagger helper — set --i on each child and apply .stagger-in */
+@keyframes stagger-fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.stagger-in {
+  opacity: 0;
+  animation: stagger-fade-up 260ms var(--ease-out) forwards;
+  animation-delay: calc(var(--i, 0) * 35ms);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 180ms var(--ease-out);
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-push-enter-active {
+  transition: transform 320ms var(--ease-drawer), opacity 260ms var(--ease-out);
+  will-change: transform;
+}
+.slide-push-leave-active {
+  transition: transform 320ms var(--ease-drawer), opacity 260ms var(--ease-out);
+  will-change: transform;
+}
+.slide-push-enter-from {
+  transform: translateX(100%);
+  opacity: 0.8;
+}
+.slide-push-leave-to {
+  transform: translateX(-12%);
+  opacity: 0.6;
+}
+
+.slide-pop-enter-active {
+  transition: transform 280ms var(--ease-out), opacity 220ms var(--ease-out);
+  will-change: transform;
+}
+.slide-pop-leave-active {
+  transition: transform 280ms var(--ease-out), opacity 220ms var(--ease-out);
+  will-change: transform;
+}
+.slide-pop-enter-from {
+  transform: translateX(-12%);
+  opacity: 0.6;
+}
+.slide-pop-leave-to {
+  transform: translateX(100%);
+  opacity: 0.8;
+}
+
+/* Skeleton ↔ content crossfade */
+.swap-enter-active,
+.swap-leave-active {
+  transition: opacity 240ms var(--ease-out), transform 240ms var(--ease-out);
+}
+.swap-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.swap-leave-to {
+  opacity: 0;
+  transform: translateY(-2px);
+}

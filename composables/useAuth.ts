@@ -3,6 +3,9 @@ import {
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
   type Auth,
   type User,
 } from 'firebase/auth'
@@ -31,6 +34,27 @@ export function useAuth() {
     return user.value.getIdToken()
   }
 
+  async function registerOnApi(firebaseUser: User): Promise<void> {
+    const token = await firebaseUser.getIdToken()
+    try {
+      await $fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+    } catch (e: unknown) {
+      const status = (e as { status?: number; statusCode?: number })?.status
+        ?? (e as { statusCode?: number })?.statusCode
+      if (status === 403) {
+        await firebaseSignOut(getFirebaseAuth())
+        user.value = null
+        const err = new Error('PesoPulse is full (5 users max). Ask the owner for a viewer link.') as Error & { code?: string }
+        err.code = 'app/user-cap-reached'
+        throw err
+      }
+      throw e
+    }
+  }
+
   async function signIn(email: string, password: string): Promise<void> {
     const cred = await signInWithEmailAndPassword(getFirebaseAuth(), email, password)
     user.value = cred.user
@@ -39,17 +63,46 @@ export function useAuth() {
   async function signUp(email: string, password: string): Promise<void> {
     const cred = await createUserWithEmailAndPassword(getFirebaseAuth(), email, password)
     user.value = cred.user
-    const token = await cred.user.getIdToken()
-    await $fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    await registerOnApi(cred.user)
+  }
+
+  function shouldUseRedirect(): boolean {
+    if (typeof window === 'undefined') return true
+    const standalone = window.matchMedia?.('(display-mode: standalone)').matches
+    const iosStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone === true
+    const mobile = /Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    return Boolean(standalone || iosStandalone || mobile)
+  }
+
+  async function signInWithGoogle(): Promise<void> {
+    const provider = new GoogleAuthProvider()
+    provider.setCustomParameters({ prompt: 'select_account' })
+    const auth = getFirebaseAuth()
+
+    if (shouldUseRedirect()) {
+      await signInWithRedirect(auth, provider)
+      return
+    }
+
+    try {
+      const cred = await signInWithPopup(auth, provider)
+      user.value = cred.user
+      await registerOnApi(cred.user)
+    } catch (e: unknown) {
+      const code = (e as { code?: string })?.code
+      if (code === 'auth/popup-blocked' || code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+        // popup path failed — fall back to redirect
+        await signInWithRedirect(auth, provider)
+        return
+      }
+      throw e
+    }
   }
 
   async function signOut(): Promise<void> {
     await firebaseSignOut(getFirebaseAuth())
     user.value = null
-    await navigateTo('/login')
+    await navigateTo('/')
   }
 
   return {
@@ -58,6 +111,8 @@ export function useAuth() {
     idToken,
     signIn,
     signUp,
+    signInWithGoogle,
     signOut,
+    registerOnApi,
   }
 }
