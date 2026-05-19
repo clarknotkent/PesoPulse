@@ -2,8 +2,13 @@
   <div class="budget-row py-4 border-b border-[var(--border)]">
     <div class="flex items-baseline justify-between gap-3 mb-2">
       <div class="min-w-0 flex-1">
-        <p class="text-[var(--text)] text-sm font-medium truncate">{{ label }}</p>
-        <p v-if="rollover > 0" class="text-[var(--c-income)] text-[10px] tabular-nums mt-0.5">
+        <p class="text-[var(--text)] text-sm font-medium truncate">
+          {{ label }}
+        </p>
+        <p
+          v-if="rollover > 0"
+          class="text-[var(--c-income)] text-[10px] tabular-nums mt-0.5"
+        >
           +{{ formatPHP(rollover) }} rollover
         </p>
       </div>
@@ -13,11 +18,14 @@
         </span>
         <button
           v-if="editable"
-          @click="$emit('edit')"
           class="press text-[var(--text-subtle)] hover:text-[var(--text)] w-7 h-7 flex items-center justify-center -mr-1"
           aria-label="Edit budget"
+          @click="$emit('edit')"
         >
-          <Icon name="edit" :size="14" />
+          <Icon
+            name="edit"
+            :size="14"
+          />
         </button>
       </div>
     </div>
@@ -27,10 +35,13 @@
         class="bar h-full rounded-full"
         :class="[barColor, { ready: animateReady }]"
         :style="{ width: `${Math.min(100, pct)}%` }"
-      ></div>
+      />
     </div>
 
-    <p v-if="overspent" class="text-[var(--c-expense)] text-[10px] mt-1.5 tabular-nums">
+    <p
+      v-if="overspent"
+      class="text-[var(--c-expense)] text-[10px] mt-1.5 tabular-nums"
+    >
       Over by {{ formatPHP(spent - (limit + rollover)) }}
     </p>
   </div>

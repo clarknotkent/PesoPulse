@@ -1,5 +1,4 @@
 from datetime import date, datetime
-from typing import Optional
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
@@ -22,17 +21,17 @@ class GoalCreate(BaseModel):
     target: float = Field(gt=0)
     deadline: str
     category: str
-    startDate: Optional[str] = None
+    startDate: str | None = None
 
 
 class GoalUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    name: Optional[str] = None
-    target: Optional[float] = Field(default=None, gt=0)
-    deadline: Optional[str] = None
-    category: Optional[str] = None
-    startDate: Optional[str] = None
+    name: str | None = None
+    target: float | None = Field(default=None, gt=0)
+    deadline: str | None = None
+    category: str | None = None
+    startDate: str | None = None
 
 
 def _parse_iso(d: str) -> date:
@@ -88,11 +87,7 @@ async def list_goals(
 ) -> list[dict]:
     await require_owner_or_viewer(owner_id, current_user)
     db = get_db()
-    docs = (
-        db.collection("goals")
-        .where(filter=FieldFilter("userId", "==", owner_id))
-        .get()
-    )
+    docs = db.collection("goals").where(filter=FieldFilter("userId", "==", owner_id)).get()
     return [_compute_progress(owner_id, d.to_dict()) for d in docs]
 
 

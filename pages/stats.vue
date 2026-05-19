@@ -1,27 +1,46 @@
 <template>
   <div class="page">
     <header class="page-header">
-      <h1 class="text-[var(--text)] font-medium">Statistics</h1>
+      <h1 class="text-[var(--text)] font-medium">
+        Statistics
+      </h1>
     </header>
 
     <div class="page-body">
-      <Transition name="swap" mode="out-in">
-        <StatsSkeleton v-if="showSkeleton" key="skeleton" />
+      <Transition
+        name="swap"
+        mode="out-in"
+      >
+        <StatsSkeleton
+          v-if="showSkeleton"
+          key="skeleton"
+        />
 
-        <div v-else key="content">
+        <div
+          v-else
+          key="content"
+        >
           <!-- All-time inline strip (no card) -->
           <section class="page-section">
             <div class="flex items-baseline justify-between gap-4 border-b border-[var(--border)] pb-4">
               <div>
-                <p class="label">All-time net</p>
+                <p class="label">
+                  All-time net
+                </p>
                 <p
                   class="text-3xl font-semibold tabular-nums tracking-tightest mt-1"
                   :class="(allTime?.net ?? 0) >= 0 ? 'text-[var(--text)]' : 'text-[var(--c-expense)]'"
-                >{{ formatPHP(allTime?.net ?? 0) }}</p>
+                >
+                  {{ formatPHP(allTime?.net ?? 0) }}
+                </p>
               </div>
               <div class="text-right tabular-nums text-xs space-y-1">
-                <p class="text-[var(--c-income)]">+{{ formatPHP(allTime?.income ?? 0) }}</p>
-                <p class="text-[var(--c-expense)]">-{{ formatPHP(allTime?.expense ?? 0) }}</p>
+                <p class="text-[var(--c-income)]">
+                  +{{ formatPHP(allTime?.income ?? 0) }}
+                </p>
+                <p class="text-[var(--c-expense)]">
+                  -{{ formatPHP(allTime?.expense ?? 0) }}
+                </p>
               </div>
             </div>
           </section>
@@ -37,10 +56,10 @@
               :income="summary?.income ?? 0"
               :expense="summary?.expense ?? 0"
               :net="summary?.net ?? 0"
-              :savingsRate="summary?.savingsRate ?? 0"
-              :deltaIncome="summary?.deltaVsPrev?.income"
-              :deltaExpense="summary?.deltaVsPrev?.expense"
-              :deltaNet="summary?.deltaVsPrev?.net"
+              :savings-rate="summary?.savingsRate ?? 0"
+              :delta-income="summary?.deltaVsPrev?.income"
+              :delta-expense="summary?.deltaVsPrev?.expense"
+              :delta-net="summary?.deltaVsPrev?.net"
             />
           </section>
 
@@ -55,11 +74,21 @@
 
           <!-- Trend bars (no shell) -->
           <section class="page-section">
-            <p class="label mb-3">Trend</p>
-            <TrendBars :buckets="trendBuckets ?? []" :period="period" />
+            <p class="label mb-3">
+              Trend
+            </p>
+            <TrendBars
+              :buckets="trendBuckets ?? []"
+              :period="period"
+            />
           </section>
 
-          <p v-if="anyError" class="text-[var(--c-expense)] text-xs text-center py-4">{{ anyError }}</p>
+          <p
+            v-if="anyError"
+            class="text-[var(--c-expense)] text-xs text-center py-4"
+          >
+            {{ anyError }}
+          </p>
         </div>
       </Transition>
     </div>
@@ -74,13 +103,13 @@ interface Summary {
   expense: number
   net: number
   savingsRate: number
-  deltaVsPrev: { income: number; expense: number; net: number }
-  range: { from: string; to: string }
+  deltaVsPrev: { income: number, expense: number, net: number }
+  range: { from: string, to: string }
 }
 
-interface CategoryRow { category: string; total: number; pct: number }
-interface TrendBucket { bucket: string; income: number; expense: number }
-interface AllTime { income: number; expense: number; net: number }
+interface CategoryRow { category: string, total: number, pct: number }
+interface TrendBucket { bucket: string, income: number, expense: number }
+interface AllTime { income: number, expense: number, net: number }
 
 const { user } = useAuth()
 const api = useApi()

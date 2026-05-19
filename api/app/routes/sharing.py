@@ -1,12 +1,14 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel
 from firebase_admin import auth as firebase_auth
 from google.cloud.firestore_v1.base_query import FieldFilter
+from pydantic import BaseModel
+
+from app.audit import audit_log
 from app.config import get_db
 from app.middleware import get_current_user, require_owner
-from app.audit import audit_log
 
 router = APIRouter()
 
@@ -59,7 +61,7 @@ async def grant_access(
         "ownerId": owner_id,
         "viewerId": viewer.uid,
         "viewerEmail": payload.viewerEmail,
-        "grantedAt": datetime.now(timezone.utc).isoformat(),
+        "grantedAt": datetime.now(UTC).isoformat(),
     }
     db.collection("sharing_permissions").document(doc["id"]).set(doc)
     audit_log(

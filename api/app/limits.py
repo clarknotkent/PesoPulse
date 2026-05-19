@@ -1,4 +1,3 @@
-from typing import Callable
 from fastapi import Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -22,4 +21,4 @@ def attach_uid(request: Request, uid: str) -> None:
     request.state.uid = uid
 
 
-__all__: list[str] = ["limiter", "ip_key", "attach_uid"]
+__all__: list[str] = ["attach_uid", "ip_key", "limiter"]

@@ -1,8 +1,8 @@
 from datetime import date, datetime, timedelta
-from typing import Literal, Optional
+from typing import Literal
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query
 from google.cloud.firestore_v1.base_query import FieldFilter
 
 from app.config import get_db
@@ -58,16 +58,8 @@ def _fetch_txns(owner_id: str, start: date, end: date) -> list[dict]:
     db = get_db()
     start_s = start.strftime("%Y-%m-%d")
     end_s = end.strftime("%Y-%m-%d")
-    docs = (
-        db.collection("transactions")
-        .where(filter=FieldFilter("userId", "==", owner_id))
-        .get()
-    )
-    return [
-        d.to_dict()
-        for d in docs
-        if start_s <= d.to_dict().get("date", "") <= end_s
-    ]
+    docs = db.collection("transactions").where(filter=FieldFilter("userId", "==", owner_id)).get()
+    return [d.to_dict() for d in docs if start_s <= d.to_dict().get("date", "") <= end_s]
 
 
 def _totals(txns: list[dict]) -> dict:
@@ -90,11 +82,7 @@ async def all_time(
 ) -> dict:
     await require_owner_or_viewer(owner_id, current_user)
     db = get_db()
-    docs = (
-        db.collection("transactions")
-        .where(filter=FieldFilter("userId", "==", owner_id))
-        .get()
-    )
+    docs = db.collection("transactions").where(filter=FieldFilter("userId", "==", owner_id)).get()
     txns = [d.to_dict() for d in docs]
     income = sum(t["amount"] for t in txns if t.get("type") == "income")
     expense = sum(t["amount"] for t in txns if t.get("type") == "expense")
@@ -109,7 +97,7 @@ async def all_time(
 async def summary(
     owner_id: str,
     period: Period = Query("month"),
-    anchor: Optional[str] = Query(None),
+    anchor: str | None = Query(None),
     current_user: dict = Depends(get_current_user),
 ) -> dict:
     await require_owner_or_viewer(owner_id, current_user)
@@ -146,7 +134,7 @@ async def summary(
 async def categories_breakdown(
     owner_id: str,
     period: Period = Query("month"),
-    anchor: Optional[str] = Query(None),
+    anchor: str | None = Query(None),
     type: Literal["income", "expense"] = Query("expense"),
     current_user: dict = Depends(get_current_user),
 ) -> list[dict]:
@@ -173,7 +161,7 @@ async def categories_breakdown(
 async def trend(
     owner_id: str,
     period: Period = Query("month"),
-    anchor: Optional[str] = Query(None),
+    anchor: str | None = Query(None),
     current_user: dict = Depends(get_current_user),
 ) -> list[dict]:
     await require_owner_or_viewer(owner_id, current_user)

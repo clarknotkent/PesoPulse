@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
-from typing import Optional
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from firebase_admin import messaging
 from pydantic import BaseModel, ConfigDict
 
@@ -18,7 +17,7 @@ class TokenRegister(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     fcmToken: str
-    platform: Optional[str] = "web"
+    platform: str | None = "web"
 
 
 def _tokens_collection(owner_id: str):
@@ -31,7 +30,7 @@ def get_user_tokens(owner_id: str) -> list[str]:
     return [d.to_dict().get("fcmToken") for d in docs if d.to_dict().get("fcmToken")]
 
 
-def _send(tokens: list[str], title: str, body: str, data: Optional[dict] = None) -> int:
+def _send(tokens: list[str], title: str, body: str, data: dict | None = None) -> int:
     if not tokens:
         return 0
     try:
@@ -119,11 +118,13 @@ async def register_token(
 ) -> dict:
     await require_owner(owner_id, current_user)
     safe_id = payload.fcmToken.replace("/", "_").replace(":", "_")[:200]
-    _tokens_collection(owner_id).document(safe_id).set({
-        "fcmToken": payload.fcmToken,
-        "platform": payload.platform,
-        "registeredAt": datetime.now(_PH_TZ).isoformat(),
-    })
+    _tokens_collection(owner_id).document(safe_id).set(
+        {
+            "fcmToken": payload.fcmToken,
+            "platform": payload.platform,
+            "registeredAt": datetime.now(_PH_TZ).isoformat(),
+        }
+    )
     return {"ok": True}
 
 

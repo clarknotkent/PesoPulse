@@ -11,8 +11,15 @@
         ]"
         @click="dismiss(t.id)"
       >
-        <p class="font-medium text-sm">{{ t.title }}</p>
-        <p v-if="t.message" class="text-xs opacity-90 mt-0.5">{{ t.message }}</p>
+        <p class="font-medium text-sm">
+          {{ t.title }}
+        </p>
+        <p
+          v-if="t.message"
+          class="text-xs opacity-90 mt-0.5"
+        >
+          {{ t.message }}
+        </p>
       </div>
     </TransitionGroup>
   </div>

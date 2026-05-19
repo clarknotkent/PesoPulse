@@ -4,7 +4,7 @@
     :class="[roundedClass, $attrs.class as string]"
     :style="styleObj"
     aria-hidden="true"
-  ></span>
+  />
 </template>
 
 <script setup lang="ts">

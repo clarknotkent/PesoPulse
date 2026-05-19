@@ -4,32 +4,40 @@
       <button
         v-for="p in (['week', 'month', 'year'] as const)"
         :key="p"
-        @click="setPeriod(p)"
         :class="[
           'press tab flex-1 py-2 rounded-lg text-sm font-medium capitalize',
           period === p
             ? 'bg-[var(--text)] text-[var(--bg)] shadow-sm'
             : 'text-[var(--text-muted)]',
         ]"
-      >{{ p }}</button>
+        @click="setPeriod(p)"
+      >
+        {{ p }}
+      </button>
     </div>
 
     <div class="flex items-center justify-between">
       <button
-        @click="prev"
         class="press w-10 h-10 rounded-lg bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-muted)] flex items-center justify-center arrow"
         aria-label="Previous period"
-      >‹</button>
+        @click="prev"
+      >
+        ‹
+      </button>
       <button
-        @click="today"
         class="press text-sm font-medium text-[var(--text)] px-3 py-1 rounded-lg"
         :title="`Jump to current ${period}`"
-      >{{ label }}</button>
+        @click="today"
+      >
+        {{ label }}
+      </button>
       <button
-        @click="next"
         class="press w-10 h-10 rounded-lg bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-muted)] flex items-center justify-center arrow"
         aria-label="Next period"
-      >›</button>
+        @click="next"
+      >
+        ›
+      </button>
     </div>
   </div>
 </template>

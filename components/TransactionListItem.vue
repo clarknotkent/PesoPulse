@@ -1,21 +1,31 @@
 <template>
   <button
-    @click="$emit('select', tx)"
     class="press tx-row w-full bg-[var(--bg-surface)] rounded-xl px-4 py-3 flex items-center justify-between text-left"
+    @click="$emit('select', tx)"
   >
     <div class="min-w-0 mr-3">
-      <p class="text-[var(--text)] text-sm font-medium truncate">{{ tx.category }}</p>
+      <p class="text-[var(--text)] text-sm font-medium truncate">
+        {{ tx.category }}
+      </p>
       <p class="text-[var(--text-subtle)] text-xs truncate">
-        <span v-if="showDate" class="tabular-nums">{{ humanizeDate(tx.date) }}</span>
+        <span
+          v-if="showDate"
+          class="tabular-nums"
+        >{{ humanizeDate(tx.date) }}</span>
         <span v-if="showDate && tx.notes"> · </span>
         <span v-if="tx.notes">{{ tx.notes }}</span>
-        <span v-if="!showDate && !tx.notes" class="opacity-60">—</span>
+        <span
+          v-if="!showDate && !tx.notes"
+          class="opacity-60"
+        >—</span>
       </p>
     </div>
     <p
       class="font-medium text-sm shrink-0 tabular-nums"
       :class="tx.type === 'income' ? 'text-[var(--c-income)]' : 'text-[var(--c-expense)]'"
-    >{{ tx.type === 'income' ? '+' : '-' }}{{ formatPHP(tx.amount) }}</p>
+    >
+      {{ tx.type === 'income' ? '+' : '-' }}{{ formatPHP(tx.amount) }}
+    </p>
   </button>
 </template>
 
@@ -33,7 +43,7 @@ export interface Transaction {
 }
 
 withDefaults(
-  defineProps<{ tx: Transaction; showDate?: boolean }>(),
+  defineProps<{ tx: Transaction, showDate?: boolean }>(),
   { showDate: true },
 )
 

@@ -8,48 +8,77 @@
           {{ initialized ? user?.email : '' }}
         </p>
       </div>
-      <NuxtLink to="/settings" class="press w-10 h-10 rounded-xl border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] flex items-center justify-center shrink-0" aria-label="Settings">
-        <Icon name="settings" :size="18" />
+      <NuxtLink
+        to="/settings"
+        class="press w-10 h-10 rounded-xl border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] flex items-center justify-center shrink-0"
+        aria-label="Settings"
+      >
+        <Icon
+          name="settings"
+          :size="18"
+        />
       </NuxtLink>
     </header>
 
     <div class="page-body">
       <!-- Notification banner (gated to actually-not-granted, supported state) -->
-      <NotifPermissionBanner v-if="showNotifBanner" class="mb-10" />
+      <NotifPermissionBanner
+        v-if="showNotifBanner"
+        class="mb-10"
+      />
 
       <!-- Hero card: balance + period chips + bounded strip -->
       <section class="page-section">
-        <Transition name="swap" mode="out-in">
-          <DashboardSkeleton v-if="initialLoading" key="skeleton" />
+        <Transition
+          name="swap"
+          mode="out-in"
+        >
+          <DashboardSkeleton
+            v-if="initialLoading"
+            key="skeleton"
+          />
           <div
             v-else
             key="hero"
             class="hero-card bg-[var(--bg-surface)] border border-[var(--border)] rounded-3xl p-6"
           >
             <div class="flex items-baseline justify-between gap-3">
-              <p class="label">Net balance</p>
-              <p v-if="stale" class="text-[var(--text-subtle)] text-[10px] tracking-wider syncing">syncing…</p>
+              <p class="label">
+                Net balance
+              </p>
+              <p
+                v-if="stale"
+                class="text-[var(--text-subtle)] text-[10px] tracking-wider syncing"
+              >
+                syncing…
+              </p>
             </div>
 
             <p
               class="text-5xl font-semibold tabular-nums tracking-tightest mt-2"
               :class="netBalance >= 0 ? 'text-[var(--text)]' : 'text-[var(--c-expense)]'"
-            >{{ formatPHP(netBalance) }}</p>
-            <p class="text-[var(--text-muted)] text-sm tabular-nums mt-2">{{ periodLabel }}</p>
+            >
+              {{ formatPHP(netBalance) }}
+            </p>
+            <p class="text-[var(--text-muted)] text-sm tabular-nums mt-2">
+              {{ periodLabel }}
+            </p>
 
             <!-- Period chips -->
             <div class="flex gap-2 mt-5">
               <button
                 v-for="p in (['day', 'week', 'month'] as const)"
                 :key="p"
-                @click="setHeroPeriod(p)"
                 :class="[
                   'press rounded-full px-3 py-1 text-xs font-medium border transition-colors',
                   heroPeriod === p
                     ? 'bg-emerald-500 text-white border-transparent'
                     : 'bg-transparent text-[var(--text-muted)] border-[var(--border)]',
                 ]"
-              >{{ chipLabel(p) }}</button>
+                @click="setHeroPeriod(p)"
+              >
+                {{ chipLabel(p) }}
+              </button>
             </div>
 
             <!-- Period-bounded strip -->
@@ -58,16 +87,28 @@
               :class="{ flicker: chipFlicker }"
             >
               <div class="py-3 pr-3">
-                <p class="text-[var(--text-subtle)] text-[10px]">Income</p>
-                <p class="text-[var(--c-income)] font-semibold text-sm tabular-nums mt-1">{{ formatPHP(periodIncome) }}</p>
+                <p class="text-[var(--text-subtle)] text-[10px]">
+                  Income
+                </p>
+                <p class="text-[var(--c-income)] font-semibold text-sm tabular-nums mt-1">
+                  {{ formatPHP(periodIncome) }}
+                </p>
               </div>
               <div class="py-3 px-3">
-                <p class="text-[var(--text-subtle)] text-[10px]">Expenses</p>
-                <p class="text-[var(--c-expense)] font-semibold text-sm tabular-nums mt-1">{{ formatPHP(periodExpense) }}</p>
+                <p class="text-[var(--text-subtle)] text-[10px]">
+                  Expenses
+                </p>
+                <p class="text-[var(--c-expense)] font-semibold text-sm tabular-nums mt-1">
+                  {{ formatPHP(periodExpense) }}
+                </p>
               </div>
               <div class="py-3 pl-3">
-                <p class="text-[var(--text-subtle)] text-[10px]">Txns</p>
-                <p class="text-[var(--text)] font-semibold text-sm tabular-nums mt-1">{{ periodTxnCount }}</p>
+                <p class="text-[var(--text-subtle)] text-[10px]">
+                  Txns
+                </p>
+                <p class="text-[var(--text)] font-semibold text-sm tabular-nums mt-1">
+                  {{ periodTxnCount }}
+                </p>
               </div>
             </div>
           </div>
@@ -75,20 +116,31 @@
       </section>
 
       <!-- Upcoming -->
-      <section v-if="upcoming.length > 0" class="page-section">
-        <p class="label-quiet mb-3">Upcoming</p>
+      <section
+        v-if="upcoming.length > 0"
+        class="page-section"
+      >
+        <p class="label-quiet mb-3">
+          Upcoming
+        </p>
         <div class="flex gap-2 overflow-x-auto -mx-5 px-5 pb-1">
           <div
             v-for="(u, idx) in upcoming"
             :key="idx"
             class="border border-[var(--border)] rounded-lg px-3 py-2 min-w-[140px] shrink-0"
           >
-            <p class="text-[var(--text-subtle)] text-[10px] uppercase tracking-wider">{{ formatDueDate(u.dueDate) }}</p>
-            <p class="text-[var(--text)] text-xs font-medium truncate mt-0.5">{{ u.category }}</p>
+            <p class="text-[var(--text-subtle)] text-[10px] uppercase tracking-wider">
+              {{ formatDueDate(u.dueDate) }}
+            </p>
+            <p class="text-[var(--text)] text-xs font-medium truncate mt-0.5">
+              {{ u.category }}
+            </p>
             <p
               class="text-xs tabular-nums mt-0.5"
               :class="u.type === 'income' ? 'text-[var(--c-income)]' : 'text-[var(--c-expense)]'"
-            >{{ u.type === 'income' ? '+' : '-' }}{{ formatPHP(u.amount) }}</p>
+            >
+              {{ u.type === 'income' ? '+' : '-' }}{{ formatPHP(u.amount) }}
+            </p>
           </div>
         </div>
       </section>
@@ -96,37 +148,37 @@
       <!-- Search + Filter -->
       <section class="page-section">
         <SearchBar
-          :modelValue="filters.search"
-          :activeCount="activeFilterCount"
-          @update:modelValue="onSearch"
+          :model-value="filters.search"
+          :active-count="activeFilterCount"
+          @update:model-value="onSearch"
           @open-filters="filterOpen = true"
         />
       </section>
 
-    <FilterDrawer
-      :open="filterOpen"
-      :filters="filters"
-      :categories="categories"
-      @close="filterOpen = false"
-      @apply="onApplyFilters"
-      @reset="onResetFilters"
-    />
+      <FilterDrawer
+        :open="filterOpen"
+        :filters="filters"
+        :categories="categories"
+        @close="filterOpen = false"
+        @apply="onApplyFilters"
+        @reset="onResetFilters"
+      />
 
-    <EditTransactionModal
-      :open="editingTx !== null"
-      :tx="editingTx"
-      :categories="categories"
-      @close="editingTx = null"
-      @save="onEditSave"
-      @delete="onEditDelete"
-    />
+      <EditTransactionModal
+        :open="editingTx !== null"
+        :tx="editingTx"
+        :categories="categories"
+        @close="editingTx = null"
+        @save="onEditSave"
+        @delete="onEditDelete"
+      />
 
-    <AddTransactionModal
-      :open="addOpen"
-      :categories="categories"
-      @close="hideAdd"
-      @save="onAddSave"
-    />
+      <AddTransactionModal
+        :open="addOpen"
+        :categories="categories"
+        @close="hideAdd"
+        @save="onAddSave"
+      />
 
       <!-- Recent Transactions -->
       <section class="page-section pb-12">
@@ -135,21 +187,49 @@
           class="press flex items-center justify-between w-full mb-4 group"
         >
           <h2 class="label">Recent transactions</h2>
-          <span class="text-[var(--text-muted)] text-xs flex items-center gap-1 group-hover:text-[var(--text)] transition-colors">View all <Icon name="chevron-right" :size="14" /></span>
+          <span class="text-[var(--text-muted)] text-xs flex items-center gap-1 group-hover:text-[var(--text)] transition-colors">View all <Icon
+            name="chevron-right"
+            :size="14"
+          /></span>
         </NuxtLink>
 
-        <p v-if="deleteError" class="text-[var(--c-expense)] text-xs mb-2">{{ deleteError }}</p>
+        <p
+          v-if="deleteError"
+          class="text-[var(--c-expense)] text-xs mb-2"
+        >
+          {{ deleteError }}
+        </p>
 
-        <Transition name="swap" mode="out-in">
-          <div v-if="initialLoading" key="skeleton" class="space-y-2">
-            <TransactionRowSkeleton v-for="n in 4" :key="n" />
+        <Transition
+          name="swap"
+          mode="out-in"
+        >
+          <div
+            v-if="initialLoading"
+            key="skeleton"
+            class="space-y-2"
+          >
+            <TransactionRowSkeleton
+              v-for="n in 4"
+              :key="n"
+            />
           </div>
 
-          <div v-else-if="transactions.length === 0" key="empty" class="text-[var(--text-subtle)] text-sm text-center py-12">
+          <div
+            v-else-if="transactions.length === 0"
+            key="empty"
+            class="text-[var(--text-subtle)] text-sm text-center py-12"
+          >
             No transactions yet. Tap + to add.
           </div>
 
-          <TransitionGroup v-else key="list" tag="div" name="tx" class="space-y-2 relative">
+          <TransitionGroup
+            v-else
+            key="list"
+            tag="div"
+            name="tx"
+            class="space-y-2 relative"
+          >
             <TransactionListItem
               v-for="tx in recentTransactions"
               :key="tx.id"
@@ -163,7 +243,10 @@
           v-if="transactions.length > recentTransactions.length"
           to="/history"
           class="press inline-flex items-center gap-1 text-[var(--text-muted)] hover:text-[var(--text)] text-xs mt-4 py-2 mx-auto justify-center w-full"
-        >See all {{ transactions.length }} <Icon name="arrow-right" :size="12" /></NuxtLink>
+        >See all {{ transactions.length }} <Icon
+          name="arrow-right"
+          :size="12"
+        /></NuxtLink>
       </section>
     </div>
   </div>
@@ -264,7 +347,7 @@ function chipLabel(p: HeroPeriod): string {
   return p === 'day' ? 'Day' : p === 'week' ? 'Week' : 'Month'
 }
 
-function periodBounds(p: HeroPeriod, now: Date = new Date()): { from: string; to: string } {
+function periodBounds(p: HeroPeriod, now: Date = new Date()): { from: string, to: string } {
   const pad = (n: number) => String(n).padStart(2, '0')
   const iso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
   if (p === 'day') {
@@ -361,7 +444,8 @@ async function onAddSave(payload: AddPayload) {
               `Over ${b.category} (${breachPeriodAdj(b.period)})`,
               `${formatPHP(b.spent)} / ${formatPHP(cap)}`,
             )
-          } else {
+          }
+          else {
             toast.warning(
               `Over total ${breachPeriodAdj(b.period)} budget`,
               `${formatPHP(b.spent)} / ${formatPHP(cap)}`,
@@ -374,7 +458,8 @@ async function onAddSave(payload: AddPayload) {
     await api.post<Transaction>(`/api/transactions/${uid}`, payload)
     await txCache.refresh()
     hideAdd()
-  } catch (e: unknown) {
+  }
+  catch (e: unknown) {
     const detail = (e as { data?: { detail?: string } })?.data?.detail ?? 'Failed to save'
     toast.error('Save failed', detail)
   }
@@ -386,7 +471,8 @@ async function deleteTransaction(id: string) {
     const uid = user.value!.uid
     await api.del(`/api/transactions/${uid}/${id}`)
     await txCache.refresh()
-  } catch {
+  }
+  catch {
     deleteError.value = 'Failed to delete transaction'
   }
 }
@@ -398,7 +484,8 @@ async function onEditSave(payload: EditPayload) {
     await api.put<Transaction>(`/api/transactions/${uid}/${id}`, body)
     await txCache.refresh()
     editingTx.value = null
-  } catch (e: unknown) {
+  }
+  catch (e: unknown) {
     deleteError.value = (e as { data?: { detail?: string } })?.data?.detail ?? 'Failed to update'
   }
 }

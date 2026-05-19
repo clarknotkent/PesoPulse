@@ -1,6 +1,6 @@
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed', platform: string }>
 }
 
 const deferred = ref<BeforeInstallPromptEvent | null>(null)
@@ -41,7 +41,7 @@ function bind() {
 }
 
 export function useInstallPrompt() {
-  if (process.client) bind()
+  if (import.meta.client) bind()
 
   const canInstall = computed(() => Boolean(deferred.value) && !installed.value)
 

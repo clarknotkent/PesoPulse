@@ -2,12 +2,32 @@
   <div>
     <!-- Month nav -->
     <div class="flex items-center justify-between mb-3">
-      <button @click="shiftMonth(-1)" class="press w-10 h-10 rounded-lg bg-[var(--bg-surface)] text-[var(--text-muted)] flex items-center justify-center" aria-label="Prev month">
-        <Icon name="chevron-left" :size="18" />
+      <button
+        class="press w-10 h-10 rounded-lg bg-[var(--bg-surface)] text-[var(--text-muted)] flex items-center justify-center"
+        aria-label="Prev month"
+        @click="shiftMonth(-1)"
+      >
+        <Icon
+          name="chevron-left"
+          :size="18"
+        />
       </button>
-      <button @click="jumpToday" class="press text-sm font-medium text-[var(--text)] px-3 py-1.5 rounded-lg tabular-nums" :title="`Jump to ${todayLabel}`">{{ monthLabel }}</button>
-      <button @click="shiftMonth(1)" class="press w-10 h-10 rounded-lg bg-[var(--bg-surface)] text-[var(--text-muted)] flex items-center justify-center" aria-label="Next month">
-        <Icon name="chevron-right" :size="18" />
+      <button
+        class="press text-sm font-medium text-[var(--text)] px-3 py-1.5 rounded-lg tabular-nums"
+        :title="`Jump to ${todayLabel}`"
+        @click="jumpToday"
+      >
+        {{ monthLabel }}
+      </button>
+      <button
+        class="press w-10 h-10 rounded-lg bg-[var(--bg-surface)] text-[var(--text-muted)] flex items-center justify-center"
+        aria-label="Next month"
+        @click="shiftMonth(1)"
+      >
+        <Icon
+          name="chevron-right"
+          :size="18"
+        />
       </button>
     </div>
 
@@ -17,7 +37,9 @@
         v-for="d in weekdayLabels"
         :key="d"
         class="text-[10px] uppercase tracking-wider text-[var(--text-subtle)] text-center py-1"
-      >{{ d }}</p>
+      >
+        {{ d }}
+      </p>
     </div>
 
     <!-- Grid -->
@@ -25,7 +47,6 @@
       <button
         v-for="(cell, idx) in cells"
         :key="idx"
-        @click="selectCell(cell)"
         :disabled="!cell.inMonth"
         :class="[
           'day-cell press relative aspect-square rounded-xl flex flex-col items-center justify-start pt-1.5 transition-colors',
@@ -34,6 +55,7 @@
             : 'bg-transparent text-[var(--text-subtle)] opacity-40 cursor-default',
           cell.inMonth && isToday(cell) && !isSelected(cell) ? 'ring-1 ring-emerald-500' : '',
         ]"
+        @click="selectCell(cell)"
       >
         <span
           class="text-xs tabular-nums leading-none"
@@ -45,20 +67,20 @@
           class="dot mt-1.5 rounded-full"
           :class="[dotColor(cell, isSelected(cell)), { ready: animateReady }]"
           :style="{ width: `${dotSize(cell)}px`, height: `${dotSize(cell)}px` }"
-        ></span>
+        />
         <span
           v-else-if="cell.inMonth && cell.txnCount > 0"
           class="dot mt-1.5 w-1.5 h-1.5 rounded-full bg-[var(--text-subtle)]"
           :class="{ ready: animateReady }"
-        ></span>
+        />
       </button>
     </div>
 
     <!-- Legend / hint -->
     <div class="flex items-center justify-center gap-3 mt-3 text-[10px] text-[var(--text-subtle)]">
-      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> income net</span>
-      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span> expense net</span>
-      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[var(--text-subtle)]"></span> flat</span>
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500" /> income net</span>
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500" /> expense net</span>
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[var(--text-subtle)]" /> flat</span>
     </div>
   </div>
 </template>

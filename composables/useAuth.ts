@@ -30,7 +30,7 @@ export function useAuth() {
     return nuxtApp.$firebaseAuth as Auth
   }
 
-  if (process.client && !listenerRegistered.value) {
+  if (import.meta.client && !listenerRegistered.value) {
     listenerRegistered.value = true
     const fbAuth = getFirebaseAuth()
 
@@ -41,7 +41,8 @@ export function useAuth() {
           emailVerified.value = result.user.emailVerified
           try {
             await registerOnApi(result.user)
-          } catch {
+          }
+          catch {
             // already registered
           }
           if (typeof window !== 'undefined') {
@@ -87,7 +88,7 @@ export function useAuth() {
   }
 
   function initIdleWatcher(): void {
-    if (!process.client || idleHandlersRegistered.value) return
+    if (!import.meta.client || idleHandlersRegistered.value) return
     idleHandlersRegistered.value = true
     const events: (keyof DocumentEventMap)[] = ['mousemove', 'keydown', 'touchstart', 'click', 'scroll']
     for (const ev of events) {
@@ -132,8 +133,9 @@ export function useAuth() {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
-    } catch (e: unknown) {
-      const status = (e as { status?: number; statusCode?: number })?.status
+    }
+    catch (e: unknown) {
+      const status = (e as { status?: number, statusCode?: number })?.status
         ?? (e as { statusCode?: number })?.statusCode
       const data = (e as { data?: { detail?: string } })?.data
       if (status === 403 && data?.detail === 'user_cap_reached') {
@@ -164,7 +166,8 @@ export function useAuth() {
     emailVerified.value = cred.user.emailVerified
     try {
       await sendEmailVerification(cred.user)
-    } catch {
+    }
+    catch {
       // verification email send is best-effort
     }
     await registerOnApi(cred.user)

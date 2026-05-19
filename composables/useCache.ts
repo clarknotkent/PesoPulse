@@ -12,7 +12,8 @@ function readStorage<T>(key: string): T | null {
     const raw = sessionStorage.getItem(storageKey(key))
     if (!raw) return null
     return JSON.parse(raw) as T
-  } catch {
+  }
+  catch {
     return null
   }
 }
@@ -21,7 +22,8 @@ function writeStorage<T>(key: string, value: T): void {
   if (typeof sessionStorage === 'undefined') return
   try {
     sessionStorage.setItem(storageKey(key), JSON.stringify(value))
-  } catch {}
+  }
+  catch {}
 }
 
 export interface UseCacheResult<T> {
@@ -76,9 +78,11 @@ export function useCache<T>(
         inMemoryCache.set(key, result)
         writeStorage(key, result)
         isStale.value = false
-      } catch (e) {
+      }
+      catch (e) {
         if (key === activeKey) error.value = e
-      } finally {
+      }
+      finally {
         const elapsed = Date.now() - start
         const remain = MIN_SKELETON_MS - elapsed
         if (remain > 0) {
@@ -86,7 +90,8 @@ export function useCache<T>(
         }
         if (key === activeKey) isLoading.value = false
       }
-    } else {
+    }
+    else {
       isStale.value = true
       try {
         const result = await fetcher()
@@ -94,9 +99,11 @@ export function useCache<T>(
         data.value = result
         inMemoryCache.set(key, result)
         writeStorage(key, result)
-      } catch (e) {
+      }
+      catch (e) {
         if (key === activeKey) error.value = e
-      } finally {
+      }
+      finally {
         if (key === activeKey) isStale.value = false
       }
     }
@@ -110,7 +117,8 @@ export function useCache<T>(
       data.value = cached
       isLoading.value = false
       doFetch(key, false)
-    } else {
+    }
+    else {
       data.value = null
       doFetch(key, true)
     }
@@ -120,7 +128,7 @@ export function useCache<T>(
     await doFetch(unwrapKey(keyArg), false)
   }
 
-  if (process.client) {
+  if (import.meta.client) {
     load()
     if (typeof keyArg !== 'string') {
       const keyRef = typeof keyArg === 'function' ? computed(keyArg as () => string) : (keyArg as Ref<string>)

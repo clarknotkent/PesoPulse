@@ -1,8 +1,9 @@
 import os
 from pathlib import Path
+
 import firebase_admin
-from firebase_admin import credentials, firestore
 from dotenv import load_dotenv
+from firebase_admin import credentials, firestore
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 load_dotenv(_PROJECT_ROOT / ".env")
@@ -29,8 +30,7 @@ def get_firebase_app() -> firebase_admin.App:
         path = _resolve_service_account_path()
         if not path.exists():
             raise FileNotFoundError(
-                f"Firebase service account not found at {path}. "
-                "Set FIREBASE_SERVICE_ACCOUNT_PATH in .env."
+                f"Firebase service account not found at {path}. Set FIREBASE_SERVICE_ACCOUNT_PATH in .env."
             )
         cred = credentials.Certificate(str(path))
         _firebase_app = firebase_admin.initialize_app(cred)

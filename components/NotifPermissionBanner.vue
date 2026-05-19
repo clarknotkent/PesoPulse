@@ -4,19 +4,27 @@
     class="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 flex items-start gap-3"
   >
     <div class="flex-1 min-w-0">
-      <p class="text-[var(--c-income)] dark:text-[var(--c-income)] text-sm font-medium">Enable notifications</p>
-      <p class="text-[var(--c-income)]/80 dark:text-[var(--c-income)]/70 text-xs mt-0.5">Get budget alerts and weekly digests.</p>
+      <p class="text-[var(--c-income)] dark:text-[var(--c-income)] text-sm font-medium">
+        Enable notifications
+      </p>
+      <p class="text-[var(--c-income)]/80 dark:text-[var(--c-income)]/70 text-xs mt-0.5">
+        Get budget alerts and weekly digests.
+      </p>
     </div>
     <div class="flex gap-2 shrink-0">
       <button
-        @click="enable"
         :disabled="working"
         class="press bg-emerald-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg disabled:opacity-50"
-      >{{ working ? '…' : 'Enable' }}</button>
+        @click="enable"
+      >
+        {{ working ? '…' : 'Enable' }}
+      </button>
       <button
-        @click="skip"
         class="press text-[var(--c-income)]/80 dark:text-[var(--c-income)]/70 text-xs px-2"
-      >Skip</button>
+        @click="skip"
+      >
+        Skip
+      </button>
     </div>
   </div>
 </template>

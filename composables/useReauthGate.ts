@@ -36,16 +36,20 @@ export function useReauthGate() {
       const res = pending.value
       pending.value = null
       res?.(true)
-    } catch (e: unknown) {
+    }
+    catch (e: unknown) {
       const code = (e as { code?: string })?.code
       if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
         error.value = 'Wrong password.'
-      } else if (code === 'auth/too-many-requests') {
+      }
+      else if (code === 'auth/too-many-requests') {
         error.value = 'Too many attempts. Try again later.'
-      } else {
+      }
+      else {
         error.value = 'Verification failed. Try again.'
       }
-    } finally {
+    }
+    finally {
       busy.value = false
     }
   }

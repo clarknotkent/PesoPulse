@@ -1,5 +1,5 @@
-from datetime import date as date_cls, datetime, timezone
-from typing import Literal, Optional
+from datetime import UTC, date as date_cls, datetime
+from typing import Literal
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
@@ -7,19 +7,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from google.cloud.firestore_v1.base_query import FieldFilter
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.audit import audit_log
 from app.config import get_db
 from app.middleware import get_current_user, require_owner, require_owner_or_viewer
-from app.audit import audit_log
-from app.routes.recurring import materialize_recurring
 from app.routes.budgets import _build_budget_view, _txn_period_anchor
 from app.routes.notifications import send_overspend_push
+from app.routes.recurring import materialize_recurring
 
 router = APIRouter()
 
 _PH_TZ = ZoneInfo("Asia/Manila")
 
 
-def _validate_iso_date(value: Optional[str]) -> Optional[str]:
+def _validate_iso_date(value: str | None) -> str | None:
     if value is None:
         return value
     try:
@@ -35,27 +35,27 @@ class TransactionCreate(BaseModel):
     amount: float = Field(gt=0)
     type: Literal["income", "expense"]
     category: str
-    notes: Optional[str] = None
-    date: Optional[str] = None
+    notes: str | None = None
+    date: str | None = None
 
     @field_validator("date")
     @classmethod
-    def _check_date(cls, v: Optional[str]) -> Optional[str]:
+    def _check_date(cls, v: str | None) -> str | None:
         return _validate_iso_date(v)
 
 
 class TransactionUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    amount: Optional[float] = Field(default=None, gt=0)
-    type: Optional[Literal["income", "expense"]] = None
-    category: Optional[str] = None
-    notes: Optional[str] = None
-    date: Optional[str] = None
+    amount: float | None = Field(default=None, gt=0)
+    type: Literal["income", "expense"] | None = None
+    category: str | None = None
+    notes: str | None = None
+    date: str | None = None
 
     @field_validator("date")
     @classmethod
-    def _check_date(cls, v: Optional[str]) -> Optional[str]:
+    def _check_date(cls, v: str | None) -> str | None:
         return _validate_iso_date(v)
 
 
@@ -63,13 +63,13 @@ class TransactionUpdate(BaseModel):
 async def list_transactions(
     request: Request,
     owner_id: str,
-    from_: Optional[str] = Query(default=None, alias="from"),
-    to: Optional[str] = None,
-    type: Optional[Literal["income", "expense"]] = None,
-    category: Optional[str] = None,
-    minAmount: Optional[float] = None,
-    maxAmount: Optional[float] = None,
-    search: Optional[str] = None,
+    from_: str | None = Query(default=None, alias="from"),
+    to: str | None = None,
+    type: Literal["income", "expense"] | None = None,
+    category: str | None = None,
+    minAmount: float | None = None,
+    maxAmount: float | None = None,
+    search: str | None = None,
     current_user: dict = Depends(get_current_user),
 ) -> list[dict]:
     await require_owner_or_viewer(owner_id, current_user)
@@ -104,9 +104,9 @@ async def list_transactions(
     if search:
         needle = search.lower()
         rows = [
-            r for r in rows
-            if needle in (r.get("notes") or "").lower()
-            or needle in (r.get("category") or "").lower()
+            r
+            for r in rows
+            if needle in (r.get("notes") or "").lower() or needle in (r.get("category") or "").lower()
         ]
     return rows
 
@@ -121,7 +121,7 @@ async def create_transaction(
     await require_owner(owner_id, current_user)
     db = get_db()
     doc_id = str(uuid4())
-    now_utc = datetime.now(timezone.utc)
+    now_utc = datetime.now(UTC)
     today_ph = now_utc.astimezone(_PH_TZ).strftime("%Y-%m-%d")
     resolved_date = payload.date or today_ph
     transaction: dict = {

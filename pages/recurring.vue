@@ -1,27 +1,57 @@
 <template>
   <div class="page">
     <header class="page-header flex items-center gap-3">
-      <NuxtLink to="/settings" class="press text-[var(--text-subtle)] hover:text-[var(--text)] w-8 h-8 flex items-center justify-center -ml-2" aria-label="Back">
-        <Icon name="chevron-left" :size="18" />
+      <NuxtLink
+        to="/settings"
+        class="press text-[var(--text-subtle)] hover:text-[var(--text)] w-8 h-8 flex items-center justify-center -ml-2"
+        aria-label="Back"
+      >
+        <Icon
+          name="chevron-left"
+          :size="18"
+        />
       </NuxtLink>
-      <h1 class="text-[var(--text)] font-medium">Recurring</h1>
+      <h1 class="text-[var(--text)] font-medium">
+        Recurring
+      </h1>
     </header>
 
     <div class="page-body">
-      <Transition name="swap" mode="out-in">
-        <RecurringSkeleton v-if="initialLoading" key="skeleton" />
+      <Transition
+        name="swap"
+        mode="out-in"
+      >
+        <RecurringSkeleton
+          v-if="initialLoading"
+          key="skeleton"
+        />
 
-        <div v-else-if="rules.length === 0" key="empty" class="flex flex-col items-center text-center py-10 gap-3">
+        <div
+          v-else-if="rules.length === 0"
+          key="empty"
+          class="flex flex-col items-center text-center py-10 gap-3"
+        >
           <span class="w-12 h-12 rounded-2xl border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)]">
-            <Icon name="recurring" :size="22" />
+            <Icon
+              name="recurring"
+              :size="22"
+            />
           </span>
           <div class="space-y-1">
-            <p class="text-[var(--text)] text-sm font-medium">No recurring rules yet</p>
-            <p class="text-[var(--text-subtle)] text-xs">Add one below to auto-post bills and income.</p>
+            <p class="text-[var(--text)] text-sm font-medium">
+              No recurring rules yet
+            </p>
+            <p class="text-[var(--text-subtle)] text-xs">
+              Add one below to auto-post bills and income.
+            </p>
           </div>
         </div>
 
-        <section v-else key="list" class="page-section border-t border-[var(--border)]">
+        <section
+          v-else
+          key="list"
+          class="page-section border-t border-[var(--border)]"
+        >
           <div
             v-for="r in rules"
             :key="r.id"
@@ -29,21 +59,37 @@
           >
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0 flex-1">
-                <p class="text-[var(--text)] text-sm font-medium">{{ r.category }} <span class="text-[var(--text-subtle)] font-normal">· {{ r.frequency }}</span></p>
+                <p class="text-[var(--text)] text-sm font-medium">
+                  {{ r.category }} <span class="text-[var(--text-subtle)] font-normal">· {{ r.frequency }}</span>
+                </p>
                 <p class="text-[var(--text-muted)] text-xs tabular-nums mt-0.5">
                   <span :class="r.type === 'income' ? 'text-[var(--c-income)]' : 'text-[var(--c-expense)]'">{{ r.type === 'income' ? '+' : '-' }}{{ formatPHP(r.amount) }}</span>
                   <span class="text-[var(--text-subtle)]"> · from {{ r.startDate }}{{ r.endDate ? ' to ' + r.endDate : '' }}</span>
                 </p>
-                <p v-if="r.notes" class="text-[var(--text-subtle)] text-xs truncate mt-0.5">{{ r.notes }}</p>
+                <p
+                  v-if="r.notes"
+                  class="text-[var(--text-subtle)] text-xs truncate mt-0.5"
+                >
+                  {{ r.notes }}
+                </p>
               </div>
               <div class="flex items-center gap-1 shrink-0">
                 <button
-                  @click="togglePause(r)"
                   class="press text-[11px] px-2 py-1 rounded font-medium"
                   :class="r.active ? 'bg-emerald-500/10 text-[var(--c-income)]' : 'bg-[var(--bg-input)] text-[var(--text-subtle)]'"
-                >{{ r.active ? 'Active' : 'Paused' }}</button>
-                <button @click="remove(r.id)" class="press text-[var(--text-subtle)] hover:text-[var(--c-expense)] w-7 h-7 flex items-center justify-center" aria-label="Delete rule">
-                  <Icon name="x" :size="14" />
+                  @click="togglePause(r)"
+                >
+                  {{ r.active ? 'Active' : 'Paused' }}
+                </button>
+                <button
+                  class="press text-[var(--text-subtle)] hover:text-[var(--c-expense)] w-7 h-7 flex items-center justify-center"
+                  aria-label="Delete rule"
+                  @click="remove(r.id)"
+                >
+                  <Icon
+                    name="x"
+                    :size="14"
+                  />
                 </button>
               </div>
             </div>
@@ -54,26 +100,33 @@
       <!-- Add form (earned card) -->
       <section class="page-section">
         <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-4 space-y-4">
-          <p class="label">Add rule</p>
+          <p class="label">
+            Add rule
+          </p>
 
           <div class="space-y-3">
             <div class="flex gap-2">
               <button
                 v-for="t in (['expense', 'income'] as const)"
                 :key="t"
-                @click="form.type = t"
                 :class="[
                   'press flex-1 py-2 rounded-lg text-sm font-medium transition capitalize',
                   form.type === t
                     ? t === 'income' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
                     : 'bg-[var(--bg-input)] text-[var(--text-muted)]',
                 ]"
-              >{{ t }}</button>
+                @click="form.type = t"
+              >
+                {{ t }}
+              </button>
             </div>
 
             <input
               v-model="form.amount"
-              type="number" min="0.01" step="0.01" placeholder="Amount (₱)"
+              type="number"
+              min="0.01"
+              step="0.01"
+              placeholder="Amount (₱)"
               class="focus-ring w-full bg-[var(--bg-input)] text-[var(--text)] rounded-lg px-4 py-3 text-sm"
             />
 
@@ -87,15 +140,25 @@
               v-model="form.frequency"
               class="focus-ring w-full bg-[var(--bg-input)] text-[var(--text)] rounded-lg px-4 py-3 text-sm"
             >
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly</option>
+              <option value="daily">
+                Daily
+              </option>
+              <option value="weekly">
+                Weekly
+              </option>
+              <option value="monthly">
+                Monthly
+              </option>
+              <option value="yearly">
+                Yearly
+              </option>
             </select>
 
             <div class="grid grid-cols-2 gap-2">
               <div class="space-y-1">
-                <p class="label-quiet">Start</p>
+                <p class="label-quiet">
+                  Start
+                </p>
                 <input
                   v-model="form.startDate"
                   type="date"
@@ -103,7 +166,9 @@
                 />
               </div>
               <div class="space-y-1">
-                <p class="label-quiet">End (optional)</p>
+                <p class="label-quiet">
+                  End (optional)
+                </p>
                 <input
                   v-model="form.endDate"
                   type="date"
@@ -114,18 +179,26 @@
 
             <input
               v-model="form.notes"
-              type="text" placeholder="Notes (optional)"
+              type="text"
+              placeholder="Notes (optional)"
               class="focus-ring w-full bg-[var(--bg-input)] text-[var(--text)] rounded-lg px-4 py-3 text-sm"
             />
           </div>
 
-          <p v-if="formError" class="text-[var(--c-expense)] text-xs">{{ formError }}</p>
+          <p
+            v-if="formError"
+            class="text-[var(--c-expense)] text-xs"
+          >
+            {{ formError }}
+          </p>
 
           <button
-            @click="save"
             :disabled="saving"
             class="press w-full bg-[var(--text)] text-[var(--bg)] font-medium py-3 rounded-lg text-sm disabled:opacity-50 disabled:active:scale-100"
-          >{{ saving ? 'Saving…' : 'Add recurring rule' }}</button>
+            @click="save"
+          >
+            {{ saving ? 'Saving…' : 'Add recurring rule' }}
+          </button>
         </div>
       </section>
     </div>
@@ -149,7 +222,7 @@ interface Rule {
   lastPostedDate?: string | null
 }
 
-interface Category { id: string; name: string; icon: string; type: 'income' | 'expense'; isSystem: boolean }
+interface Category { id: string, name: string, icon: string, type: 'income' | 'expense', isSystem: boolean }
 
 const { user } = useAuth()
 const api = useApi()
@@ -189,7 +262,8 @@ async function load() {
     rules.value = r
     categories.value = c
     initialLoaded.value = true
-  } finally {
+  }
+  finally {
     const elapsed = Date.now() - start
     const remain = 150 - elapsed
     if (remain > 0 && !initialLoaded.value) {
@@ -223,9 +297,11 @@ async function save() {
     form.category = ''
     form.notes = ''
     form.endDate = ''
-  } catch (e: unknown) {
+  }
+  catch (e: unknown) {
     formError.value = (e as { data?: { detail?: string } })?.data?.detail ?? 'Failed to save'
-  } finally {
+  }
+  finally {
     saving.value = false
   }
 }
@@ -236,7 +312,8 @@ async function togglePause(r: Rule) {
     const updated = await api.put<Rule>(`/api/recurring/${uid}/${r.id}`, { active: !r.active })
     const idx = rules.value.findIndex((x) => x.id === r.id)
     if (idx !== -1) rules.value[idx] = updated
-  } catch {}
+  }
+  catch {}
 }
 
 async function remove(id: string) {
@@ -244,7 +321,8 @@ async function remove(id: string) {
   try {
     await api.del(`/api/recurring/${uid}/${id}`)
     rules.value = rules.value.filter((r) => r.id !== id)
-  } catch {}
+  }
+  catch {}
 }
 
 onMounted(load)

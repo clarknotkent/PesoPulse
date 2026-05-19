@@ -3,21 +3,27 @@
     <div class="flex-1 relative">
       <input
         :value="modelValue"
-        @input="onInput"
         type="text"
         placeholder="Search notes or category…"
         class="search-input w-full bg-[var(--bg-surface)] text-[var(--text)] placeholder-[var(--text-subtle)] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none"
+        @input="onInput"
       />
       <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-subtle)] pointer-events-none">
-        <Icon name="search" :size="16" />
+        <Icon
+          name="search"
+          :size="16"
+        />
       </span>
     </div>
     <button
-      @click="$emit('open-filters')"
       class="press relative w-11 h-11 bg-[var(--bg-surface)] rounded-xl text-[var(--text-muted)] flex items-center justify-center filter-btn"
       aria-label="Open filters"
+      @click="$emit('open-filters')"
     >
-      <Icon name="sliders" :size="18" />
+      <Icon
+        name="sliders"
+        :size="18"
+      />
       <Transition name="badge">
         <span
           v-if="activeCount > 0"

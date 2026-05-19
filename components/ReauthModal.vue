@@ -1,16 +1,33 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="open" class="modal-root fixed inset-0 z-[var(--z-modal)] flex items-end sm:items-center sm:justify-center">
-        <div class="modal-backdrop absolute inset-0 bg-black/60" @click="onCancel"></div>
+      <div
+        v-if="open"
+        class="modal-root fixed inset-0 z-[var(--z-modal)] flex items-end sm:items-center sm:justify-center"
+      >
+        <div
+          class="modal-backdrop absolute inset-0 bg-black/60"
+          @click="onCancel"
+        />
         <div class="modal-panel relative w-full sm:max-w-sm bg-[var(--bg-surface)] rounded-t-3xl sm:rounded-3xl p-5 pb-safe space-y-4 max-h-[90dvh] overflow-y-auto">
           <div class="flex items-center justify-between">
-            <p class="text-[var(--text)] font-medium">{{ reason }}</p>
-            <button @click="onCancel" class="press text-[var(--text-subtle)] hover:text-[var(--text)] w-8 h-8 flex items-center justify-center -mr-2" aria-label="Cancel">
-              <Icon name="x" :size="16" />
+            <p class="text-[var(--text)] font-medium">
+              {{ reason }}
+            </p>
+            <button
+              class="press text-[var(--text-subtle)] hover:text-[var(--text)] w-8 h-8 flex items-center justify-center -mr-2"
+              aria-label="Cancel"
+              @click="onCancel"
+            >
+              <Icon
+                name="x"
+                :size="16"
+              />
             </button>
           </div>
-          <p class="text-[var(--text-subtle)] text-xs">Re-enter your password to continue.</p>
+          <p class="text-[var(--text-subtle)] text-xs">
+            Re-enter your password to continue.
+          </p>
           <input
             ref="passwordInput"
             v-model="password"
@@ -20,18 +37,27 @@
             class="field w-full bg-[var(--bg-input)] text-[var(--text)] rounded-lg px-4 py-3 text-sm"
             @keydown.enter="onSubmit"
           />
-          <p v-if="error" class="text-[var(--c-expense)] text-xs">{{ error }}</p>
+          <p
+            v-if="error"
+            class="text-[var(--c-expense)] text-xs"
+          >
+            {{ error }}
+          </p>
           <div class="flex gap-2 pt-1">
             <button
-              @click="onCancel"
               :disabled="busy"
               class="press flex-1 py-3 rounded-lg text-sm font-medium bg-[var(--bg-input)] text-[var(--text)]"
-            >Cancel</button>
+              @click="onCancel"
+            >
+              Cancel
+            </button>
             <button
-              @click="onSubmit"
               :disabled="busy || !password"
               class="press-strong flex-1 py-3 rounded-lg text-sm font-medium bg-[var(--accent)] text-white disabled:opacity-50"
-            >{{ busy ? 'Checking...' : 'Confirm' }}</button>
+              @click="onSubmit"
+            >
+              {{ busy ? 'Checking...' : 'Confirm' }}
+            </button>
           </div>
         </div>
       </div>

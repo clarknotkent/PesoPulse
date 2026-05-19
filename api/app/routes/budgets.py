@@ -1,9 +1,9 @@
 from datetime import date, datetime, timedelta
-from typing import Literal, Optional
+from typing import Literal
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query
 from google.cloud.firestore_v1.base_query import FieldFilter
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -21,8 +21,8 @@ Period = Literal["day", "week", "month"]
 class BudgetUpsert(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    total: Optional[float] = Field(default=None, ge=0)
-    categories: Optional[dict[str, float]] = None
+    total: float | None = Field(default=None, ge=0)
+    categories: dict[str, float] | None = None
 
 
 class BudgetCheckPayload(BaseModel):
@@ -30,7 +30,7 @@ class BudgetCheckPayload(BaseModel):
 
     amount: float = Field(gt=0)
     category: str
-    date: Optional[str] = None
+    date: str | None = None
 
 
 def _today_ph() -> date:
@@ -54,7 +54,7 @@ def _anchor_for(period: Period, d: date) -> str:
     return d.replace(day=1).strftime("%Y-%m-%d")
 
 
-def _resolve_anchor(period: Period, anchor: Optional[str]) -> str:
+def _resolve_anchor(period: Period, anchor: str | None) -> str:
     if anchor:
         return _anchor_for(period, _parse_iso(anchor))
     return _anchor_for(period, _today_ph())
@@ -111,21 +111,13 @@ def _doc_period_anchor(d: dict) -> tuple[Period, str]:
 
 def _all_budget_docs(owner_id: str) -> list[dict]:
     db = get_db()
-    docs = (
-        db.collection("budgets")
-        .where(filter=FieldFilter("userId", "==", owner_id))
-        .get()
-    )
+    docs = db.collection("budgets").where(filter=FieldFilter("userId", "==", owner_id)).get()
     return [{**d.to_dict(), "_id": d.id} for d in docs]
 
 
 def _all_txns(owner_id: str) -> list[dict]:
     db = get_db()
-    docs = (
-        db.collection("transactions")
-        .where(filter=FieldFilter("userId", "==", owner_id))
-        .get()
-    )
+    docs = db.collection("transactions").where(filter=FieldFilter("userId", "==", owner_id)).get()
     return [d.to_dict() for d in docs]
 
 
@@ -199,7 +191,7 @@ def _build_budget_view(
     period: Period,
     anchor: str,
     extra_amount: float = 0.0,
-    extra_category: Optional[str] = None,
+    extra_category: str | None = None,
 ) -> dict:
     docs = _all_budget_docs(owner_id)
     txns = [t for t in _all_txns(owner_id) if t.get("type") == "expense"]
@@ -236,7 +228,8 @@ def _build_budget_view(
         total_by_anchor[anchor] += extra_amount
 
     total_view = _compute_rollover(
-        anchor, _TOTAL_KEY,
+        anchor,
+        _TOTAL_KEY,
         by_cat_budget.get(_TOTAL_KEY, {}),
         total_by_anchor,
         period,
@@ -248,7 +241,8 @@ def _build_budget_view(
     category_views = []
     for cat in sorted(all_cats):
         v = _compute_rollover(
-            anchor, cat,
+            anchor,
+            cat,
             by_cat_budget.get(cat, {}),
             by_cat_txn.get(cat, {}),
             period,
@@ -270,7 +264,7 @@ def _build_budget_view(
 async def get_budgets(
     owner_id: str,
     period: Period = Query("month"),
-    anchor: Optional[str] = Query(None),
+    anchor: str | None = Query(None),
     current_user: dict = Depends(get_current_user),
 ) -> dict:
     await require_owner_or_viewer(owner_id, current_user)
@@ -283,7 +277,7 @@ async def upsert_budgets(
     owner_id: str,
     payload: BudgetUpsert,
     period: Period = Query("month"),
-    anchor: Optional[str] = Query(None),
+    anchor: str | None = Query(None),
     current_user: dict = Depends(get_current_user),
 ) -> dict:
     await require_owner(owner_id, current_user)
@@ -299,7 +293,7 @@ async def upsert_budgets(
         cat_key = d.get("category") or _TOTAL_KEY
         existing_map[cat_key] = d["_id"]
 
-    def _set(category_key: Optional[str], limit: float) -> None:
+    def _set(category_key: str | None, limit: float) -> None:
         key = category_key if category_key is not None else _TOTAL_KEY
         if key in existing_map:
             ref = db.collection("budgets").document(existing_map[key])
@@ -311,15 +305,17 @@ async def upsert_budgets(
             if limit <= 0:
                 return
             doc_id = str(uuid4())
-            db.collection("budgets").document(doc_id).set({
-                "id": doc_id,
-                "userId": owner_id,
-                "period": period,
-                "anchor": resolved,
-                "category": None if category_key is None else category_key,
-                "limit": float(limit),
-                "createdAt": datetime.now(_PH_TZ).isoformat(),
-            })
+            db.collection("budgets").document(doc_id).set(
+                {
+                    "id": doc_id,
+                    "userId": owner_id,
+                    "period": period,
+                    "anchor": resolved,
+                    "category": None if category_key is None else category_key,
+                    "limit": float(limit),
+                    "createdAt": datetime.now(_PH_TZ).isoformat(),
+                }
+            )
 
     if payload.total is not None:
         _set(None, payload.total)
@@ -344,7 +340,9 @@ async def check_overspend(
     for period in ("day", "week", "month"):
         anchor = _txn_period_anchor(period, txn_date)
         view = _build_budget_view(
-            owner_id, period, anchor,
+            owner_id,
+            period,
+            anchor,
             extra_amount=payload.amount,
             extra_category=payload.category,
         )
@@ -353,24 +351,28 @@ async def check_overspend(
             None,
         )
         if cat_view and cat_view["overspent"]:
-            breaches.append({
-                "period": period,
-                "scope": "category",
-                "category": payload.category,
-                "limit": cat_view["limit"],
-                "rollover": cat_view["rollover"],
-                "spent": cat_view["spent"],
-                "remaining": cat_view["remaining"],
-            })
+            breaches.append(
+                {
+                    "period": period,
+                    "scope": "category",
+                    "category": payload.category,
+                    "limit": cat_view["limit"],
+                    "rollover": cat_view["rollover"],
+                    "spent": cat_view["spent"],
+                    "remaining": cat_view["remaining"],
+                }
+            )
         if view["total"]["overspent"] and view["total"]["limit"] > 0:
-            breaches.append({
-                "period": period,
-                "scope": "total",
-                "category": None,
-                "limit": view["total"]["limit"],
-                "rollover": view["total"]["rollover"],
-                "spent": view["total"]["spent"],
-                "remaining": view["total"]["remaining"],
-            })
+            breaches.append(
+                {
+                    "period": period,
+                    "scope": "total",
+                    "category": None,
+                    "limit": view["total"]["limit"],
+                    "rollover": view["total"]["rollover"],
+                    "spent": view["total"]["spent"],
+                    "remaining": view["total"]["remaining"],
+                }
+            )
 
     return {"wouldOverspend": len(breaches) > 0, "breaches": breaches}

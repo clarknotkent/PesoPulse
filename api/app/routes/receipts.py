@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from google import genai
 from google.genai import types
 
-from app.middleware import get_current_user
 from app.audit import audit_log
+from app.middleware import get_current_user
 
 router = APIRouter()
 

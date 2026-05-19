@@ -9,12 +9,22 @@
     "dev:backend": "cd api && venv\\Scripts\\python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload",
     "build": "nuxt build",
     "build:frontend": "nuxt build",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:py": "cd api && venv\\Scripts\\ruff check .",
+    "lint:py:fix": "cd api && venv\\Scripts\\ruff check . --fix && venv\\Scripts\\ruff format .",
+    "lint:all": "npm run lint && npm run lint:py",
+    "lint:all:fix": "npm run lint:fix && npm run lint:py:fix"
   },
   "devDependencies": {
+    "@nuxt/eslint": "^1.15.2",
+    "@nuxt/eslint-config": "^1.15.2",
     "@nuxtjs/tailwindcss": "^6.13.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
     "@vite-pwa/nuxt": "^0.10.6",
     "concurrently": "^9.1.2",
+    "eslint": "^10.4.0",
     "nuxt": "^3.17.7"
   },
   "dependencies": {

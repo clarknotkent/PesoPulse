@@ -1,13 +1,28 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="open && tx" class="modal-root fixed inset-0 z-[var(--z-modal)] flex items-end sm:items-center sm:justify-center">
-        <div class="modal-backdrop absolute inset-0 bg-black/60" @click="$emit('close')"></div>
+      <div
+        v-if="open && tx"
+        class="modal-root fixed inset-0 z-[var(--z-modal)] flex items-end sm:items-center sm:justify-center"
+      >
+        <div
+          class="modal-backdrop absolute inset-0 bg-black/60"
+          @click="$emit('close')"
+        />
         <div class="modal-panel relative w-full sm:max-w-md bg-[var(--bg-surface)] rounded-t-3xl sm:rounded-3xl p-5 pb-safe space-y-5 max-h-[90dvh] overflow-y-auto">
           <div class="flex items-center justify-between">
-            <p class="text-[var(--text)] font-medium">Edit Transaction</p>
-            <button @click="$emit('close')" class="press text-[var(--text-subtle)] hover:text-[var(--text)] w-8 h-8 flex items-center justify-center -mr-2" aria-label="Close">
-              <Icon name="x" :size="16" />
+            <p class="text-[var(--text)] font-medium">
+              Edit Transaction
+            </p>
+            <button
+              class="press text-[var(--text-subtle)] hover:text-[var(--text)] w-8 h-8 flex items-center justify-center -mr-2"
+              aria-label="Close"
+              @click="$emit('close')"
+            >
+              <Icon
+                name="x"
+                :size="16"
+              />
             </button>
           </div>
 
@@ -15,24 +30,31 @@
             <button
               v-for="t in (['expense', 'income'] as const)"
               :key="t"
-              @click="draft.type = t"
               :class="[
                 'press flex-1 py-2 rounded-lg text-sm font-medium toggle',
                 draft.type === t
                   ? t === 'income' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
                   : 'bg-[var(--bg-input)] text-[var(--text-muted)]',
               ]"
-            >{{ t }}</button>
+              @click="draft.type = t"
+            >
+              {{ t }}
+            </button>
           </div>
 
           <input
             v-model="draft.amount"
-            type="number" min="0.01" step="0.01" placeholder="Amount (₱)"
+            type="number"
+            min="0.01"
+            step="0.01"
+            placeholder="Amount (₱)"
             class="field w-full bg-[var(--bg-input)] text-[var(--text)] rounded-lg px-4 py-3 text-sm"
           />
 
           <div class="space-y-2">
-            <p class="text-[var(--text-subtle)] text-[11px]">Date</p>
+            <p class="text-[var(--text-subtle)] text-[11px]">
+              Date
+            </p>
             <input
               v-model="draft.date"
               type="date"
@@ -48,22 +70,32 @@
 
           <input
             v-model="draft.notes"
-            type="text" placeholder="Notes (optional)"
+            type="text"
+            placeholder="Notes (optional)"
             class="field w-full bg-[var(--bg-input)] text-[var(--text)] rounded-lg px-4 py-3 text-sm"
           />
 
-          <p v-if="error" class="text-[var(--c-expense)] text-xs">{{ error }}</p>
+          <p
+            v-if="error"
+            class="text-[var(--c-expense)] text-xs"
+          >
+            {{ error }}
+          </p>
 
           <div class="flex gap-2 pt-1">
             <button
-              @click="onSave"
               :disabled="saving"
               class="press flex-1 bg-[var(--text)] text-[var(--bg)] font-medium py-3 rounded-lg text-sm disabled:opacity-50 disabled:active:scale-100"
-            >{{ saving ? 'Saving…' : 'Save' }}</button>
+              @click="onSave"
+            >
+              {{ saving ? 'Saving…' : 'Save' }}
+            </button>
             <button
-              @click="onDelete"
               class="press flex-1 bg-red-900/40 text-[var(--c-expense)] font-medium py-3 rounded-lg text-sm"
-            >Delete</button>
+              @click="onDelete"
+            >
+              Delete
+            </button>
           </div>
         </div>
       </div>
@@ -81,7 +113,7 @@ interface Transaction {
   notes?: string | null
 }
 
-interface Category { id: string; name: string; icon: string; type: 'income' | 'expense'; isSystem: boolean }
+interface Category { id: string, name: string, icon: string, type: 'income' | 'expense', isSystem: boolean }
 
 const props = defineProps<{
   open: boolean
@@ -91,7 +123,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  save: [payload: { id: string; amount: number; type: 'income' | 'expense'; category: string; notes: string | null; date: string }]
+  save: [payload: { id: string, amount: number, type: 'income' | 'expense', category: string, notes: string | null, date: string }]
   delete: [id: string]
 }>()
 
@@ -137,7 +169,8 @@ async function onSave() {
       notes: draft.notes || null,
       date: draft.date,
     })
-  } finally {
+  }
+  finally {
     saving.value = false
   }
 }

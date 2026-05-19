@@ -7,22 +7,24 @@ export function useApi() {
     return { Authorization: `Bearer ${token}` }
   }
 
-  type FetchOpts = { method?: string; body?: unknown }
+  type FetchOpts = { method?: string, body?: unknown }
 
   async function request<T>(path: string, opts: FetchOpts = {}): Promise<T> {
     const method = opts.method ?? 'GET'
     try {
       return await $fetch<T>(path, { method, body: opts.body, headers: await authHeaders() })
-    } catch (e: unknown) {
-      const status = (e as { status?: number; statusCode?: number })?.status
+    }
+    catch (e: unknown) {
+      const status = (e as { status?: number, statusCode?: number })?.status
         ?? (e as { statusCode?: number })?.statusCode
       const detail = (e as { data?: { detail?: string } })?.data?.detail
 
       if (status === 401) {
         try {
           return await $fetch<T>(path, { method, body: opts.body, headers: await authHeaders(true) })
-        } catch (retry: unknown) {
-          const retryStatus = (retry as { status?: number; statusCode?: number })?.status
+        }
+        catch (retry: unknown) {
+          const retryStatus = (retry as { status?: number, statusCode?: number })?.status
             ?? (retry as { statusCode?: number })?.statusCode
           if (retryStatus === 401) {
             await signOut()

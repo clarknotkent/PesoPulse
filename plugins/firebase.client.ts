@@ -7,12 +7,12 @@ export default defineNuxtPlugin(() => {
   const app = getApps().length
     ? getApps()[0]
     : initializeApp({
-        apiKey: pub.firebaseApiKey as string,
-        authDomain: pub.firebaseAuthDomain as string,
-        projectId: pub.firebaseProjectId as string,
-        appId: pub.firebaseAppId as string,
-        messagingSenderId: pub.firebaseMessagingSenderId as string,
-      })
+      apiKey: pub.firebaseApiKey as string,
+      authDomain: pub.firebaseAuthDomain as string,
+      projectId: pub.firebaseProjectId as string,
+      appId: pub.firebaseAppId as string,
+      messagingSenderId: pub.firebaseMessagingSenderId as string,
+    })
 
   const auth = getAuth(app)
 

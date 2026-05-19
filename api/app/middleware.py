@@ -2,6 +2,7 @@ from fastapi import HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from firebase_admin import auth
 from google.cloud.firestore_v1.base_query import FieldFilter
+
 from app.config import get_db
 
 bearer_scheme = HTTPBearer()
@@ -11,9 +12,7 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
 ) -> dict:
     try:
-        decoded: dict = auth.verify_id_token(
-            credentials.credentials, check_revoked=True
-        )
+        decoded: dict = auth.verify_id_token(credentials.credentials, check_revoked=True)
         return decoded
     except auth.ExpiredIdTokenError:
         raise HTTPException(
@@ -58,9 +57,7 @@ async def require_owner(target_owner_id: str, current_user: dict) -> None:
         )
 
 
-async def require_owner_or_viewer(
-    target_owner_id: str, current_user: dict
-) -> None:
+async def require_owner_or_viewer(target_owner_id: str, current_user: dict) -> None:
     uid: str = current_user.get("uid", "")
     if uid == target_owner_id:
         return

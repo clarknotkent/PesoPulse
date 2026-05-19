@@ -1,31 +1,48 @@
 <template>
   <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-5">
     <div class="flex items-center justify-between mb-3">
-      <p class="label">Categories</p>
+      <p class="label">
+        Categories
+      </p>
       <div class="flex gap-1 bg-[var(--bg-input)] rounded-lg p-0.5">
         <button
           v-for="t in (['expense', 'income'] as const)"
           :key="t"
-          @click="$emit('update:type', t)"
           :class="[
             'press px-3 py-1 rounded-md text-xs font-medium transition capitalize',
             type === t ? 'bg-[var(--text)] text-[var(--bg)]' : 'text-[var(--text-muted)]',
           ]"
-        >{{ t }}</button>
+          @click="$emit('update:type', t)"
+        >
+          {{ t }}
+        </button>
       </div>
     </div>
 
-    <p v-if="rows.length === 0" class="text-[var(--text-subtle)] text-sm text-center py-8">
+    <p
+      v-if="rows.length === 0"
+      class="text-[var(--text-subtle)] text-sm text-center py-8"
+    >
       No {{ type }} data in this period.
     </p>
 
-    <div v-else class="flex flex-col items-center">
+    <div
+      v-else
+      class="flex flex-col items-center"
+    >
       <div class="relative w-48 h-48">
-        <Doughnut :data="chartData" :options="chartOptions" />
+        <Doughnut
+          :data="chartData"
+          :options="chartOptions"
+        />
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div class="text-center">
-            <p class="text-[var(--text-subtle)] text-[10px] uppercase">Total</p>
-            <p class="text-[var(--text)] font-bold text-sm tabular-nums">{{ formatPHP(total) }}</p>
+            <p class="text-[var(--text-subtle)] text-[10px] uppercase">
+              Total
+            </p>
+            <p class="text-[var(--text)] font-bold text-sm tabular-nums">
+              {{ formatPHP(total) }}
+            </p>
           </div>
         </div>
       </div>
@@ -37,7 +54,10 @@
           class="flex items-center justify-between text-xs"
         >
           <span class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full" :style="{ background: colors[idx % colors.length] }"></span>
+            <span
+              class="w-2.5 h-2.5 rounded-full"
+              :style="{ background: colors[idx % colors.length] }"
+            />
             <span class="text-[var(--text)]">{{ row.category }}</span>
           </span>
           <span class="text-[var(--text-muted)] tabular-nums">
@@ -59,14 +79,15 @@ import {
   type ChartData,
   type ChartOptions,
 } from 'chart.js'
-ChartJS.register(ArcElement, Tooltip, Legend)
 
 const props = defineProps<{
-  rows: { category: string; total: number; pct: number }[]
+  rows: { category: string, total: number, pct: number }[]
   type: 'income' | 'expense'
 }>()
 
 defineEmits<{ 'update:type': [value: 'income' | 'expense'] }>()
+
+ChartJS.register(ArcElement, Tooltip, Legend)
 
 const expensePalette = [
   '#ef4444', '#f97316', '#f59e0b', '#eab308', '#ec4899',

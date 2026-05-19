@@ -11,11 +11,11 @@ from app.middleware import get_current_user, require_owner
 router = APIRouter()
 
 SYSTEM_DEFAULTS: list[dict] = [
-    {"id": "sys_food",       "name": "Food",       "icon": "🍔", "type": "expense", "isSystem": True},
-    {"id": "sys_utilities",  "name": "Utilities",  "icon": "💡", "type": "expense", "isSystem": True},
-    {"id": "sys_transport",  "name": "Transport",  "icon": "🚌", "type": "expense", "isSystem": True},
-    {"id": "sys_allowance",  "name": "Allowance",  "icon": "💸", "type": "income",  "isSystem": True},
-    {"id": "sys_salary",     "name": "Salary",     "icon": "💼", "type": "income",  "isSystem": True},
+    {"id": "sys_food", "name": "Food", "icon": "🍔", "type": "expense", "isSystem": True},
+    {"id": "sys_utilities", "name": "Utilities", "icon": "💡", "type": "expense", "isSystem": True},
+    {"id": "sys_transport", "name": "Transport", "icon": "🚌", "type": "expense", "isSystem": True},
+    {"id": "sys_allowance", "name": "Allowance", "icon": "💸", "type": "income", "isSystem": True},
+    {"id": "sys_salary", "name": "Salary", "icon": "💼", "type": "income", "isSystem": True},
 ]
 
 
@@ -26,9 +26,7 @@ class CategoryCreate(BaseModel):
 
 
 @router.get("/{owner_id}")
-async def list_categories(
-    owner_id: str, current_user: dict = Depends(get_current_user)
-) -> list[dict]:
+async def list_categories(owner_id: str, current_user: dict = Depends(get_current_user)) -> list[dict]:
     db = get_db()
     docs = db.collection("categories").where(filter=FieldFilter("userId", "==", owner_id)).get()
     custom: list[dict] = [{**doc.to_dict(), "isSystem": False} for doc in docs]

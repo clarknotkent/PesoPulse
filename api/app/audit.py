@@ -1,11 +1,14 @@
 from __future__ import annotations
+
 import ipaddress
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 from uuid import uuid4
+
 from fastapi import Request
 from google.cloud import firestore
+
 from app.config import get_db
 
 _logger = logging.getLogger("pesopulse.audit")
@@ -13,7 +16,7 @@ _logger = logging.getLogger("pesopulse.audit")
 AUDIT_COLLECTION = "audit_logs"
 
 
-def _client_ip(request: Optional[Request]) -> Optional[str]:
+def _client_ip(request: Request | None) -> str | None:
     if request is None:
         return None
     forwarded = request.headers.get("x-forwarded-for")
@@ -24,7 +27,7 @@ def _client_ip(request: Optional[Request]) -> Optional[str]:
     return None
 
 
-def _redact_ip(ip: Optional[str]) -> Optional[str]:
+def _redact_ip(ip: str | None) -> str | None:
     if not ip:
         return None
     try:
@@ -41,10 +44,10 @@ def _redact_ip(ip: Optional[str]) -> Optional[str]:
 def audit_log(
     actor_uid: str,
     action: str,
-    target_owner_id: Optional[str] = None,
-    target_doc_id: Optional[str] = None,
-    request: Optional[Request] = None,
-    metadata: Optional[dict[str, Any]] = None,
+    target_owner_id: str | None = None,
+    target_doc_id: str | None = None,
+    request: Request | None = None,
+    metadata: dict[str, Any] | None = None,
 ) -> None:
     """Best-effort audit write. Never raises — auth events must not break business actions."""
     try:
@@ -58,7 +61,7 @@ def audit_log(
             "targetDocId": target_doc_id,
             "ip": _redact_ip(_client_ip(request)),
             "requestId": request_id,
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "ts": datetime.now(UTC).isoformat(),
             "createdAt": firestore.SERVER_TIMESTAMP,
             "metadata": metadata or {},
         }

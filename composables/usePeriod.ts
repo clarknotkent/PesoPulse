@@ -83,10 +83,12 @@ export function usePeriod() {
     if (period.value === 'week') {
       from = startOfWeek(d)
       to = endOfWeek(d)
-    } else if (period.value === 'month') {
+    }
+    else if (period.value === 'month') {
       from = startOfMonth(d)
       to = endOfMonth(d)
-    } else {
+    }
+    else {
       from = startOfYear(d)
       to = endOfYear(d)
     }

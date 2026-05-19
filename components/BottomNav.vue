@@ -17,18 +17,27 @@
         <template v-if="item.fab">
           <button
             type="button"
-            @click.prevent="onFabClick"
             class="fab absolute left-1/2 -translate-x-1/2 -translate-y-4 w-14 h-14 rounded-full bg-emerald-500 text-white shadow-xl shadow-emerald-500/30 flex items-center justify-center pointer-events-auto"
             aria-label="Add transaction"
+            @click.prevent="onFabClick"
           >
-            <Icon name="plus" :size="24" :stroke-width="2.5" />
+            <Icon
+              name="plus"
+              :size="24"
+              :stroke-width="2.5"
+            />
           </button>
           <span class="text-[10px] mt-7 opacity-0">.</span>
         </template>
         <template v-else>
-          <Icon :name="item.icon!" :size="20" :stroke-width="2" class="nav-icon" />
+          <Icon
+            :name="item.icon!"
+            :size="20"
+            :stroke-width="2"
+            class="nav-icon"
+          />
           <span class="text-[10px] mt-1 font-medium tracking-tight">{{ item.label }}</span>
-          <span class="nav-dot"></span>
+          <span class="nav-dot" />
         </template>
       </NuxtLink>
     </div>

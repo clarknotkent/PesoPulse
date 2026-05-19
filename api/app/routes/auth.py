@@ -1,10 +1,11 @@
+from email_validator import EmailNotValidError, validate_email
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from firebase_admin import auth as fb_auth
 from pydantic import BaseModel
-from email_validator import EmailNotValidError, validate_email
-from app.middleware import get_current_user
-from app.config import get_db
+
 from app.audit import audit_log
+from app.config import get_db
+from app.middleware import get_current_user
 
 router = APIRouter()
 
@@ -64,12 +65,14 @@ async def register_user(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="user_cap_reached",
             )
-        ref.set({
-            "uid": uid,
-            "email": email,
-            "name": current_user.get("name"),
-            "emailVerifiedAt": None,
-        })
+        ref.set(
+            {
+                "uid": uid,
+                "email": email,
+                "name": current_user.get("name"),
+                "emailVerifiedAt": None,
+            }
+        )
         audit_log(
             actor_uid=uid,
             action="auth.register",
@@ -102,4 +105,3 @@ async def revoke_tokens(
         target_doc_id=uid,
         request=request,
     )
-    return None

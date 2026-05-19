@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-from typing import Literal, Optional
+from typing import Literal
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
@@ -23,24 +23,24 @@ class RecurringCreate(BaseModel):
     amount: float = Field(gt=0)
     type: Literal["income", "expense"]
     category: str
-    notes: Optional[str] = None
+    notes: str | None = None
     frequency: Frequency
     startDate: str
-    endDate: Optional[str] = None
+    endDate: str | None = None
     active: bool = True
 
 
 class RecurringUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    amount: Optional[float] = Field(default=None, gt=0)
-    type: Optional[Literal["income", "expense"]] = None
-    category: Optional[str] = None
-    notes: Optional[str] = None
-    frequency: Optional[Frequency] = None
-    startDate: Optional[str] = None
-    endDate: Optional[str] = None
-    active: Optional[bool] = None
+    amount: float | None = Field(default=None, gt=0)
+    type: Literal["income", "expense"] | None = None
+    category: str | None = None
+    notes: str | None = None
+    frequency: Frequency | None = None
+    startDate: str | None = None
+    endDate: str | None = None
+    active: bool | None = None
 
 
 def _parse_iso(d: str) -> date:
@@ -74,7 +74,9 @@ def _next_due(prev: date, freq: Frequency) -> date:
 def _days_in_month(year: int, month: int) -> int:
     if month == 12:
         return 31
-    return (date(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1) - timedelta(days=1)).day
+    return (
+        date(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1) - timedelta(days=1)
+    ).day
 
 
 def _is_leap(year: int) -> bool:
@@ -107,25 +109,29 @@ def materialize_recurring(owner_id: str) -> int:
 
         while next_due <= today and (end is None or next_due <= end):
             tx_id = str(uuid4())
-            db.collection("transactions").document(tx_id).set({
-                "id": tx_id,
-                "userId": owner_id,
-                "amount": float(rule["amount"]),
-                "type": rule["type"],
-                "date": next_due.strftime("%Y-%m-%d"),
-                "category": rule["category"],
-                "notes": rule.get("notes"),
-                "recurringRuleId": rule_id,
-                "createdAt": datetime.now(_PH_TZ).isoformat(),
-            })
+            db.collection("transactions").document(tx_id).set(
+                {
+                    "id": tx_id,
+                    "userId": owner_id,
+                    "amount": float(rule["amount"]),
+                    "type": rule["type"],
+                    "date": next_due.strftime("%Y-%m-%d"),
+                    "category": rule["category"],
+                    "notes": rule.get("notes"),
+                    "recurringRuleId": rule_id,
+                    "createdAt": datetime.now(_PH_TZ).isoformat(),
+                }
+            )
             created += 1
             last_posted = next_due
             next_due = _next_due(next_due, freq)
 
         if last_posted_s != (last_posted.strftime("%Y-%m-%d") if last_posted else None):
-            db.collection("recurring_rules").document(rule_id).update({
-                "lastPostedDate": last_posted.strftime("%Y-%m-%d") if last_posted else None,
-            })
+            db.collection("recurring_rules").document(rule_id).update(
+                {
+                    "lastPostedDate": last_posted.strftime("%Y-%m-%d") if last_posted else None,
+                }
+            )
 
     return created
 
@@ -154,14 +160,16 @@ def upcoming_recurring(owner_id: str, days_ahead: int = 7) -> list[dict]:
         next_due = _next_due(last_posted, freq) if last_posted else start
         while next_due <= horizon and (end is None or next_due <= end):
             if next_due > today:
-                upcoming.append({
-                    "ruleId": rule["id"],
-                    "amount": float(rule["amount"]),
-                    "type": rule["type"],
-                    "category": rule["category"],
-                    "notes": rule.get("notes"),
-                    "dueDate": next_due.strftime("%Y-%m-%d"),
-                })
+                upcoming.append(
+                    {
+                        "ruleId": rule["id"],
+                        "amount": float(rule["amount"]),
+                        "type": rule["type"],
+                        "category": rule["category"],
+                        "notes": rule.get("notes"),
+                        "dueDate": next_due.strftime("%Y-%m-%d"),
+                    }
+                )
             next_due = _next_due(next_due, freq)
 
     upcoming.sort(key=lambda u: u["dueDate"])
@@ -175,11 +183,7 @@ async def list_rules(
 ) -> list[dict]:
     await require_owner_or_viewer(owner_id, current_user)
     db = get_db()
-    docs = (
-        db.collection("recurring_rules")
-        .where(filter=FieldFilter("userId", "==", owner_id))
-        .get()
-    )
+    docs = db.collection("recurring_rules").where(filter=FieldFilter("userId", "==", owner_id)).get()
     return [d.to_dict() for d in docs]
 
 

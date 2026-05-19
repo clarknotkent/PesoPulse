@@ -3,12 +3,17 @@
     <!-- Header -->
     <header class="page-header space-y-5">
       <div class="flex items-center justify-between">
-        <h1 class="text-[var(--text)] font-medium">Settings</h1>
+        <h1 class="text-[var(--text)] font-medium">
+          Settings
+        </h1>
         <button
-          @click="signOut"
           class="press text-[var(--text-subtle)] hover:text-[var(--c-expense)] text-xs inline-flex items-center gap-1"
+          @click="signOut"
         >
-          <Icon name="logout" :size="14" />
+          <Icon
+            name="logout"
+            :size="14"
+          />
           Sign out
         </button>
       </div>
@@ -18,27 +23,37 @@
         <button
           v-for="tab in (['categories', 'sharing', 'recurring', 'security', 'appearance', 'app'] as const)"
           :key="tab"
-          @click="activeTab = tab"
           :class="[
             'press flex-1 py-2 rounded-lg text-sm font-medium transition capitalize whitespace-nowrap px-3',
             activeTab === tab ? 'bg-[var(--bg-surface)] text-[var(--text)] shadow-sm' : 'text-[var(--text-muted)]',
           ]"
-        >{{ tabLabel(tab) }}</button>
+          @click="activeTab = tab"
+        >
+          {{ tabLabel(tab) }}
+        </button>
       </div>
     </header>
 
     <!-- Categories tab -->
-    <div v-if="activeTab === 'categories'" class="page-body">
+    <div
+      v-if="activeTab === 'categories'"
+      class="page-body"
+    >
       <!-- System pills -->
       <section class="page-section">
-        <p class="label mb-3">System</p>
+        <p class="label mb-3">
+          System
+        </p>
         <div class="flex flex-wrap gap-2">
           <span
             v-for="cat in systemCategories"
             :key="cat.id"
             class="border border-[var(--border)] text-[var(--text-muted)] text-xs px-3 py-1.5 rounded-full inline-flex items-center gap-1.5"
           >
-            <Icon :name="resolveCatIcon(cat)" :size="12" />
+            <Icon
+              :name="resolveCatIcon(cat)"
+              :size="12"
+            />
             {{ cat.name }}
           </span>
         </div>
@@ -46,9 +61,19 @@
 
       <!-- Custom — hairline rows -->
       <section class="page-section">
-        <p class="label mb-3">Custom</p>
-        <p v-if="customCategories.length === 0" class="text-[var(--text-subtle)] text-sm py-2">No custom categories yet.</p>
-        <div v-else class="border-t border-[var(--border)]">
+        <p class="label mb-3">
+          Custom
+        </p>
+        <p
+          v-if="customCategories.length === 0"
+          class="text-[var(--text-subtle)] text-sm py-2"
+        >
+          No custom categories yet.
+        </p>
+        <div
+          v-else
+          class="border-t border-[var(--border)]"
+        >
           <div
             v-for="cat in customCategories"
             :key="cat.id"
@@ -56,10 +81,15 @@
           >
             <div class="flex items-center gap-3 min-w-0">
               <span class="w-8 h-8 rounded-lg bg-[var(--bg-input)] flex items-center justify-center text-[var(--text-muted)] shrink-0">
-                <Icon :name="resolveCatIcon(cat)" :size="14" />
+                <Icon
+                  :name="resolveCatIcon(cat)"
+                  :size="14"
+                />
               </span>
               <div class="min-w-0">
-                <p class="text-[var(--text)] text-sm font-medium truncate">{{ cat.name }}</p>
+                <p class="text-[var(--text)] text-sm font-medium truncate">
+                  {{ cat.name }}
+                </p>
                 <span
                   :class="[
                     'text-[10px] px-1.5 py-0.5 rounded-full inline-block mt-0.5',
@@ -69,11 +99,14 @@
               </div>
             </div>
             <button
-              @click="deleteCategory(cat.id)"
               class="press text-[var(--text-subtle)] hover:text-[var(--c-expense)] w-8 h-8 flex items-center justify-center shrink-0"
               aria-label="Delete category"
+              @click="deleteCategory(cat.id)"
             >
-              <Icon name="x" :size="14" />
+              <Icon
+                name="x"
+                :size="14"
+              />
             </button>
           </div>
         </div>
@@ -82,7 +115,9 @@
       <!-- Add form (earned) -->
       <section class="page-section">
         <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-4 space-y-4">
-          <p class="label">Add category</p>
+          <p class="label">
+            Add category
+          </p>
 
           <div class="space-y-3">
             <input
@@ -96,48 +131,76 @@
               <button
                 v-for="t in (['expense', 'income'] as const)"
                 :key="t"
-                @click="newCat.type = t"
                 :class="[
                   'press flex-1 py-2 rounded-lg text-sm font-medium transition',
                   newCat.type === t
                     ? t === 'income' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
                     : 'bg-[var(--bg-input)] text-[var(--text-muted)]',
                 ]"
-              >{{ t === 'income' ? 'Income' : 'Expense' }}</button>
+                @click="newCat.type = t"
+              >
+                {{ t === 'income' ? 'Income' : 'Expense' }}
+              </button>
             </div>
           </div>
 
-          <p v-if="catError" class="text-[var(--c-expense)] text-xs">{{ catError }}</p>
+          <p
+            v-if="catError"
+            class="text-[var(--c-expense)] text-xs"
+          >
+            {{ catError }}
+          </p>
 
           <button
-            @click="addCategory"
             :disabled="catSubmitting"
             class="press w-full bg-[var(--text)] text-[var(--bg)] font-medium py-3 rounded-lg text-sm disabled:opacity-50 disabled:active:scale-100"
-          >{{ catSubmitting ? 'Adding…' : 'Add category' }}</button>
+            @click="addCategory"
+          >
+            {{ catSubmitting ? 'Adding…' : 'Add category' }}
+          </button>
         </div>
       </section>
     </div>
 
     <!-- Sharing tab -->
-    <div v-if="activeTab === 'sharing'" class="page-body">
+    <div
+      v-if="activeTab === 'sharing'"
+      class="page-body"
+    >
       <!-- Hairline list -->
       <section class="page-section">
-        <p class="label mb-3">Access granted to</p>
-        <p v-if="grants.length === 0" class="text-[var(--text-subtle)] text-sm py-2">No one has access.</p>
-        <div v-else class="border-t border-[var(--border)]">
+        <p class="label mb-3">
+          Access granted to
+        </p>
+        <p
+          v-if="grants.length === 0"
+          class="text-[var(--text-subtle)] text-sm py-2"
+        >
+          No one has access.
+        </p>
+        <div
+          v-else
+          class="border-t border-[var(--border)]"
+        >
           <div
             v-for="grant in grants"
             :key="grant.id"
             class="py-4 border-b border-[var(--border)] flex items-center justify-between gap-3"
           >
             <div class="min-w-0">
-              <p class="text-[var(--text)] text-sm font-medium truncate">{{ grant.viewerEmail }}</p>
-              <p class="text-[var(--text-subtle)] text-xs tabular-nums mt-0.5">{{ formatGrantDate(grant.grantedAt) }}</p>
+              <p class="text-[var(--text)] text-sm font-medium truncate">
+                {{ grant.viewerEmail }}
+              </p>
+              <p class="text-[var(--text-subtle)] text-xs tabular-nums mt-0.5">
+                {{ formatGrantDate(grant.grantedAt) }}
+              </p>
             </div>
             <button
-              @click="revokeGrant(grant.id)"
               class="press text-[var(--text-subtle)] hover:text-[var(--c-expense)] text-xs px-2 py-1 rounded shrink-0"
-            >Revoke</button>
+              @click="revokeGrant(grant.id)"
+            >
+              Revoke
+            </button>
           </div>
         </div>
       </section>
@@ -145,7 +208,9 @@
       <!-- Grant form (earned) -->
       <section class="page-section">
         <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-4 space-y-4">
-          <p class="label">Grant access</p>
+          <p class="label">
+            Grant access
+          </p>
 
           <input
             v-model="shareEmail"
@@ -154,26 +219,43 @@
             class="focus-ring w-full bg-[var(--bg-input)] text-[var(--text)] placeholder-[var(--text-subtle)] rounded-lg px-4 py-3 text-sm outline-none"
           />
 
-          <p v-if="shareError" class="text-[var(--c-expense)] text-xs">{{ shareError }}</p>
+          <p
+            v-if="shareError"
+            class="text-[var(--c-expense)] text-xs"
+          >
+            {{ shareError }}
+          </p>
 
           <button
-            @click="grantAccess"
             :disabled="shareSubmitting"
             class="press w-full bg-[var(--text)] text-[var(--bg)] font-medium py-3 rounded-lg text-sm disabled:opacity-50 disabled:active:scale-100"
-          >{{ shareSubmitting ? 'Granting…' : 'Grant access' }}</button>
+            @click="grantAccess"
+          >
+            {{ shareSubmitting ? 'Granting…' : 'Grant access' }}
+          </button>
         </div>
       </section>
 
       <!-- Share link (earned — copy CTA) -->
-      <section v-if="grants.length > 0" class="page-section">
+      <section
+        v-if="grants.length > 0"
+        class="page-section"
+      >
         <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-4 space-y-3">
-          <p class="label">Your share link</p>
-          <p class="font-mono text-xs text-[var(--text-muted)] break-all">{{ shareUrl }}</p>
+          <p class="label">
+            Your share link
+          </p>
+          <p class="font-mono text-xs text-[var(--text-muted)] break-all">
+            {{ shareUrl }}
+          </p>
           <button
-            @click="copyLink"
             class="press w-full bg-[var(--bg-input)] text-[var(--text)] font-medium py-3 rounded-lg text-sm inline-flex items-center justify-center gap-2"
+            @click="copyLink"
           >
-            <Icon :name="copied ? 'check' : 'share'" :size="14" />
+            <Icon
+              :name="copied ? 'check' : 'share'"
+              :size="14"
+            />
             {{ copied ? 'Copied' : 'Copy link' }}
           </button>
         </div>
@@ -181,7 +263,10 @@
     </div>
 
     <!-- Recurring tab -->
-    <div v-if="activeTab === 'recurring'" class="page-body">
+    <div
+      v-if="activeTab === 'recurring'"
+      class="page-body"
+    >
       <section class="page-section">
         <NuxtLink
           to="/recurring"
@@ -191,61 +276,103 @@
             <p class="text-[var(--text)] text-sm font-medium">Recurring transactions</p>
             <p class="text-[var(--text-subtle)] text-xs mt-0.5">Manage automatic income & bills.</p>
           </div>
-          <Icon name="chevron-right" :size="16" class="text-[var(--text-subtle)]" />
+          <Icon
+            name="chevron-right"
+            :size="16"
+            class="text-[var(--text-subtle)]"
+          />
         </NuxtLink>
       </section>
     </div>
 
     <!-- Security tab -->
-    <div v-if="activeTab === 'security'" class="page-body">
+    <div
+      v-if="activeTab === 'security'"
+      class="page-body"
+    >
       <section class="page-section">
         <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-4 space-y-3">
-          <p class="label">Email</p>
+          <p class="label">
+            Email
+          </p>
           <div class="flex items-center justify-between gap-3">
             <div class="min-w-0">
-              <p class="text-[var(--text)] text-sm font-medium truncate">{{ user?.email }}</p>
+              <p class="text-[var(--text)] text-sm font-medium truncate">
+                {{ user?.email }}
+              </p>
               <p class="text-[var(--text-subtle)] text-xs mt-0.5">
-                <span v-if="emailVerified" class="text-emerald-400">✓ Verified</span>
-                <span v-else class="text-amber-400">! Not verified</span>
+                <span
+                  v-if="emailVerified"
+                  class="text-emerald-400"
+                >✓ Verified</span>
+                <span
+                  v-else
+                  class="text-amber-400"
+                >! Not verified</span>
               </p>
             </div>
             <button
               v-if="!emailVerified"
-              @click="onResendVerification"
               :disabled="verifyBusy"
               class="press shrink-0 bg-[var(--bg-input)] text-[var(--text)] text-xs px-3 py-1.5 rounded-lg disabled:opacity-50"
-            >{{ verifyBusy ? 'Sending…' : 'Resend' }}</button>
+              @click="onResendVerification"
+            >
+              {{ verifyBusy ? 'Sending…' : 'Resend' }}
+            </button>
           </div>
         </div>
       </section>
 
       <section class="page-section">
         <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-4 space-y-3">
-          <p class="label">Sessions</p>
+          <p class="label">
+            Sessions
+          </p>
           <p class="text-[var(--text-subtle)] text-xs leading-relaxed">
             Sign out of every browser and device using your account. Use this if you lost a device.
           </p>
           <button
-            @click="onRevokeAll"
             :disabled="revokeBusy"
             class="press w-full bg-red-500/10 border border-red-500/30 text-red-300 font-medium py-3 rounded-lg text-sm disabled:opacity-50"
-          >{{ revokeBusy ? 'Revoking…' : 'Sign out everywhere' }}</button>
+            @click="onRevokeAll"
+          >
+            {{ revokeBusy ? 'Revoking…' : 'Sign out everywhere' }}
+          </button>
         </div>
       </section>
 
       <section class="page-section">
-        <p class="label mb-3">Recent activity</p>
-        <p v-if="auditLoading" class="text-[var(--text-subtle)] text-sm py-2">Loading…</p>
-        <p v-else-if="auditEntries.length === 0" class="text-[var(--text-subtle)] text-sm py-2">No recorded activity yet.</p>
-        <div v-else class="border-t border-[var(--border)]">
+        <p class="label mb-3">
+          Recent activity
+        </p>
+        <p
+          v-if="auditLoading"
+          class="text-[var(--text-subtle)] text-sm py-2"
+        >
+          Loading…
+        </p>
+        <p
+          v-else-if="auditEntries.length === 0"
+          class="text-[var(--text-subtle)] text-sm py-2"
+        >
+          No recorded activity yet.
+        </p>
+        <div
+          v-else
+          class="border-t border-[var(--border)]"
+        >
           <div
             v-for="entry in auditEntries"
             :key="entry.id"
             class="py-3 border-b border-[var(--border)] flex items-start justify-between gap-3"
           >
             <div class="min-w-0">
-              <p class="text-[var(--text)] text-sm font-medium">{{ formatAction(entry.action) }}</p>
-              <p class="text-[var(--text-subtle)] text-[11px] mt-0.5 tabular-nums">{{ formatTs(entry.ts) }}<span v-if="entry.ip"> · {{ entry.ip }}</span></p>
+              <p class="text-[var(--text)] text-sm font-medium">
+                {{ formatAction(entry.action) }}
+              </p>
+              <p class="text-[var(--text-subtle)] text-[11px] mt-0.5 tabular-nums">
+                {{ formatTs(entry.ts) }}<span v-if="entry.ip"> · {{ entry.ip }}</span>
+              </p>
             </div>
           </div>
         </div>
@@ -253,52 +380,71 @@
     </div>
 
     <!-- Appearance tab -->
-    <div v-if="activeTab === 'appearance'" class="page-body">
+    <div
+      v-if="activeTab === 'appearance'"
+      class="page-body"
+    >
       <section class="page-section">
-        <p class="label mb-3">Theme</p>
+        <p class="label mb-3">
+          Theme
+        </p>
         <div class="grid grid-cols-3 gap-2">
           <button
             v-for="opt in themeOptions"
             :key="opt.value"
-            @click="setTheme(opt.value)"
             :class="[
               'press py-3 rounded-lg text-sm font-medium capitalize inline-flex flex-col items-center gap-1.5 border',
               themeChoice === opt.value
                 ? 'bg-[var(--text)] text-[var(--bg)] border-transparent'
                 : 'bg-transparent text-[var(--text-muted)] border-[var(--border)]',
             ]"
+            @click="setTheme(opt.value)"
           >
-            <Icon :name="opt.icon" :size="16" />
+            <Icon
+              :name="opt.icon"
+              :size="16"
+            />
             {{ opt.value }}
           </button>
         </div>
-        <p class="text-[var(--text-subtle)] text-xs mt-3">Currently: {{ effectiveTheme }}</p>
+        <p class="text-[var(--text-subtle)] text-xs mt-3">
+          Currently: {{ effectiveTheme }}
+        </p>
       </section>
     </div>
 
     <!-- App tab — install + about -->
-    <div v-if="activeTab === 'app'" class="page-body">
+    <div
+      v-if="activeTab === 'app'"
+      class="page-body"
+    >
       <section class="page-section">
         <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-5">
           <div class="flex items-center justify-between gap-3">
             <div class="min-w-0">
-              <p class="text-[var(--text)] text-sm font-medium">{{ installed ? 'Installed' : 'Install PesoPulse' }}</p>
+              <p class="text-[var(--text)] text-sm font-medium">
+                {{ installed ? 'Installed' : 'Install PesoPulse' }}
+              </p>
               <p class="text-[var(--text-subtle)] text-xs mt-1">
                 {{ installed
                   ? 'Running as an installed app.'
                   : (canInstall
-                      ? 'Add to your home screen for an app-like experience.'
-                      : (isIos
-                        ? 'On iOS: Share → Add to Home Screen.'
-                        : 'Install not available on this browser yet.')) }}
+                    ? 'Add to your home screen for an app-like experience.'
+                    : (isIos
+                      ? 'On iOS: Share → Add to Home Screen.'
+                      : 'Install not available on this browser yet.')) }}
               </p>
             </div>
             <button
               v-if="canInstall && !installed"
-              @click="promptInstall"
               class="press shrink-0 bg-emerald-500 text-white font-medium py-2 px-4 rounded-lg text-sm inline-flex items-center gap-1.5"
+              @click="promptInstall"
             >
-              <Icon name="plus" :size="14" :stroke-width="2.5" />
+              <Icon
+                name="plus"
+                :size="14"
+                :stroke-width="2.5"
+              />
               Install
             </button>
           </div>
@@ -306,7 +452,9 @@
       </section>
 
       <section class="page-section">
-        <p class="label mb-2">About</p>
+        <p class="label mb-2">
+          About
+        </p>
         <p class="text-[var(--text-muted)] text-sm leading-relaxed max-w-prose">
           PesoPulse is a personal finance tracker for the Philippine Peso. Built as a Progressive Web App; works online,
           installable to your home screen, and ready for offline navigation.
@@ -371,7 +519,8 @@ function formatAction(a: string): string {
 function formatTs(iso: string): string {
   try {
     return new Date(iso).toLocaleString('en-PH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-  } catch {
+  }
+  catch {
     return iso
   }
 }
@@ -382,9 +531,11 @@ async function loadAuditLog(): Promise<void> {
   auditLoading.value = true
   try {
     auditEntries.value = await api.get<AuditEntry[]>(`/api/audit/${uid}?limit=30`)
-  } catch {
+  }
+  catch {
     auditEntries.value = []
-  } finally {
+  }
+  finally {
     auditLoading.value = false
   }
 }
@@ -394,9 +545,11 @@ async function onResendVerification(): Promise<void> {
   try {
     await sendVerification()
     toast.info('Sent', 'Verification email sent.')
-  } catch {
+  }
+  catch {
     toast.error('Failed', 'Could not send verification email.')
-  } finally {
+  }
+  finally {
     verifyBusy.value = false
   }
 }
@@ -407,7 +560,8 @@ async function onRevokeAll(): Promise<void> {
   revokeBusy.value = true
   try {
     await signOutEverywhere()
-  } catch {
+  }
+  catch {
     toast.error('Failed', 'Could not revoke sessions.')
     revokeBusy.value = false
   }
@@ -451,7 +605,7 @@ const shareSubmitting = ref(false)
 const copied = ref(false)
 
 const shareUrl = computed(() => {
-  if (process.client) {
+  if (import.meta.client) {
     return `${window.location.origin}/shared/${user.value?.uid}`
   }
   return ''
@@ -485,7 +639,8 @@ async function loadCategories() {
   if (!uid) return
   try {
     categories.value = await api.get<Category[]>(`/api/categories/${uid}`)
-  } catch {}
+  }
+  catch {}
 }
 
 async function loadGrants() {
@@ -493,7 +648,8 @@ async function loadGrants() {
   if (!uid) return
   try {
     grants.value = await api.get<Grant[]>(`/api/sharing/${uid}`)
-  } catch {}
+  }
+  catch {}
 }
 
 async function addCategory() {
@@ -512,9 +668,11 @@ async function addCategory() {
     })
     categories.value.push(cat)
     newCat.name = ''
-  } catch (e: unknown) {
+  }
+  catch (e: unknown) {
     catError.value = (e as { data?: { detail?: string } })?.data?.detail ?? 'Failed to add category'
-  } finally {
+  }
+  finally {
     catSubmitting.value = false
   }
 }
@@ -524,7 +682,8 @@ async function deleteCategory(id: string) {
   try {
     await api.del(`/api/categories/${uid}/${id}`)
     categories.value = categories.value.filter((c) => c.id !== id)
-  } catch {}
+  }
+  catch {}
 }
 
 async function grantAccess() {
@@ -539,19 +698,24 @@ async function grantAccess() {
     const grant = await api.post<Grant>(`/api/sharing/${uid}`, { viewerEmail: shareEmail.value.trim() })
     grants.value.push(grant)
     shareEmail.value = ''
-  } catch (e: unknown) {
+  }
+  catch (e: unknown) {
     const status = (e as { status?: number })?.status
     const detail = (e as { data?: { detail?: string } })?.data?.detail
     if (status === 404) {
       shareError.value = 'User not registered in PesoPulse'
-    } else if (status === 409) {
+    }
+    else if (status === 409) {
       shareError.value = 'Already has access'
-    } else if (status === 400) {
+    }
+    else if (status === 400) {
       shareError.value = detail ?? 'Invalid request'
-    } else {
+    }
+    else {
       shareError.value = detail ?? 'Failed to grant access'
     }
-  } finally {
+  }
+  finally {
     shareSubmitting.value = false
   }
 }
@@ -563,7 +727,8 @@ async function revokeGrant(id: string) {
   try {
     await api.del(`/api/sharing/${uid}/${id}`)
     grants.value = grants.value.filter((g) => g.id !== id)
-  } catch {}
+  }
+  catch {}
 }
 
 async function copyLink() {

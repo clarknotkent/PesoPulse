@@ -26,7 +26,8 @@ export function useBudgetCheck() {
         category,
         date,
       })
-    } catch {
+    }
+    catch {
       return null
     }
   }

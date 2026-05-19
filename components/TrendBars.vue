@@ -1,10 +1,19 @@
 <template>
   <div>
-    <div v-if="buckets.length === 0" class="text-[var(--text-subtle)] text-sm text-center py-8">
+    <div
+      v-if="buckets.length === 0"
+      class="text-[var(--text-subtle)] text-sm text-center py-8"
+    >
       No data.
     </div>
-    <div v-else class="h-56">
-      <Bar :data="chartData" :options="chartOptions" />
+    <div
+      v-else
+      class="h-56"
+    >
+      <Bar
+        :data="chartData"
+        :options="chartOptions"
+      />
     </div>
   </div>
 </template>
@@ -21,17 +30,18 @@ import {
   type ChartData,
   type ChartOptions,
 } from 'chart.js'
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
 const props = defineProps<{
-  buckets: { bucket: string; income: number; expense: number }[]
+  buckets: { bucket: string, income: number, expense: number }[]
   period: 'week' | 'month' | 'year'
 }>()
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
 function formatLabel(bucket: string): string {
   if (props.period === 'year') {
     const [, m] = bucket.split('-')
-    return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m, 10) - 1]
+    return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][parseInt(m, 10) - 1]
   }
   const d = new Date(bucket)
   if (props.period === 'week') {

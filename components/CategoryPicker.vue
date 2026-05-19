@@ -3,16 +3,26 @@
     <!-- Trigger row -->
     <button
       type="button"
-      @click="toggle"
       class="press field w-full bg-[var(--bg-input)] text-left rounded-lg px-4 py-3 text-sm flex items-center justify-between"
       :aria-expanded="expanded"
+      @click="toggle"
     >
       <span class="flex items-center gap-2 min-w-0">
-        <span v-if="selected" class="flex items-center gap-2 text-[var(--text)] truncate">
-          <Icon :name="resolveIcon(selected)" :size="16" class="text-[var(--c-income)]" />
+        <span
+          v-if="selected"
+          class="flex items-center gap-2 text-[var(--text)] truncate"
+        >
+          <Icon
+            :name="resolveIcon(selected)"
+            :size="16"
+            class="text-[var(--c-income)]"
+          />
           {{ selected.name }}
         </span>
-        <span v-else class="text-[var(--text-subtle)]">{{ placeholder }}</span>
+        <span
+          v-else
+          class="text-[var(--text-subtle)]"
+        >{{ placeholder }}</span>
       </span>
       <Icon
         name="chevron-down"
@@ -24,23 +34,35 @@
 
     <!-- Inline accordion grid -->
     <Transition name="accordion">
-      <div v-if="expanded" class="grid-wrap mt-2">
-        <div v-if="filtered.length === 0" class="text-[var(--text-subtle)] text-xs px-1 py-3">
+      <div
+        v-if="expanded"
+        class="grid-wrap mt-2"
+      >
+        <div
+          v-if="filtered.length === 0"
+          class="text-[var(--text-subtle)] text-xs px-1 py-3"
+        >
           No {{ type }} categories yet.
         </div>
-        <div v-else class="grid grid-cols-3 gap-2">
+        <div
+          v-else
+          class="grid grid-cols-3 gap-2"
+        >
           <button
             v-for="(c, i) in filtered"
             :key="c.id"
             type="button"
-            @click="pick(c)"
             class="press chip stagger-in rounded-lg px-2 py-2.5 text-xs font-medium flex flex-col items-center gap-1 text-center"
             :class="modelValue === c.name
               ? 'bg-emerald-500/15 text-[var(--c-income)] ring-1 ring-emerald-500/60'
               : 'bg-[var(--bg-input)] text-[var(--text)]'"
             :style="{ '--i': Math.min(i, 11) }"
+            @click="pick(c)"
           >
-            <Icon :name="resolveIcon(c)" :size="18" />
+            <Icon
+              :name="resolveIcon(c)"
+              :size="18"
+            />
             <span class="truncate w-full">{{ c.name }}</span>
           </button>
         </div>

@@ -2,18 +2,31 @@
   <div class="bg-[var(--bg-surface)] rounded-2xl p-5">
     <!-- Empty state -->
     <div v-if="!hasCap && !loading">
-      <p class="text-[var(--text-muted)] text-xs uppercase tracking-widest mb-1">{{ periodTitle }}</p>
-      <p class="text-[var(--text)] font-medium mb-3">No {{ periodAdj }} budget yet</p>
-      <p class="text-[var(--text-subtle)] text-xs">Set a total cap below to track your pace.</p>
+      <p class="text-[var(--text-muted)] text-xs uppercase tracking-widest mb-1">
+        {{ periodTitle }}
+      </p>
+      <p class="text-[var(--text)] font-medium mb-3">
+        No {{ periodAdj }} budget yet
+      </p>
+      <p class="text-[var(--text-subtle)] text-xs">
+        Set a total cap below to track your pace.
+      </p>
     </div>
 
     <!-- Loading -->
-    <div v-else-if="loading && !data" class="text-[var(--text-subtle)] text-sm py-2">Loading…</div>
+    <div
+      v-else-if="loading && !data"
+      class="text-[var(--text-subtle)] text-sm py-2"
+    >
+      Loading…
+    </div>
 
     <!-- Widget -->
     <div v-else-if="data">
       <div class="flex items-baseline justify-between mb-1">
-        <p class="text-[var(--text-muted)] text-xs uppercase tracking-widest">{{ periodLabel }}</p>
+        <p class="text-[var(--text-muted)] text-xs uppercase tracking-widest">
+          {{ periodLabel }}
+        </p>
         <span
           :class="[
             'text-[10px] font-medium px-2 py-0.5 rounded-full',
@@ -25,10 +38,15 @@
       <p
         class="text-3xl font-bold tabular-nums"
         :class="remaining < 0 ? 'text-[var(--c-expense)]' : 'text-[var(--text)]'"
-      >{{ formatPHP(remaining) }}</p>
+      >
+        {{ formatPHP(remaining) }}
+      </p>
       <p class="text-[var(--text-subtle)] text-xs mt-0.5">
         {{ formatPHP(spent) }} / {{ formatPHP(cap) }} · {{ timeLeftLabel }}
-        <span v-if="rollover > 0" class="text-[var(--c-income)]">· +{{ formatPHP(rollover) }} rollover</span>
+        <span
+          v-if="rollover > 0"
+          class="text-[var(--c-income)]"
+        >· +{{ formatPHP(rollover) }} rollover</span>
       </p>
 
       <!-- Time elapsed bar -->
@@ -42,7 +60,7 @@
             class="bar bar-time h-full bg-[var(--text-subtle)] rounded-full"
             :class="{ ready: animateReady }"
             :style="{ width: `${pctTime}%` }"
-          ></div>
+          />
         </div>
       </div>
 
@@ -57,7 +75,7 @@
             class="bar h-full rounded-full"
             :class="[barColor, { ready: animateReady }]"
             :style="{ width: `${Math.min(100, pctBudget)}%` }"
-          ></div>
+          />
         </div>
       </div>
     </div>
@@ -70,9 +88,9 @@ type Period = 'day' | 'week' | 'month'
 interface BudgetView {
   period: Period
   anchor: string
-  range: { from: string; to: string }
-  total: { limit: number; spent: number; rollover: number; remaining: number; overspent: boolean }
-  categories: { category: string | null; limit: number; spent: number; rollover: number; remaining: number; overspent: boolean }[]
+  range: { from: string, to: string }
+  total: { limit: number, spent: number, rollover: number, remaining: number, overspent: boolean }
+  categories: { category: string | null, limit: number, spent: number, rollover: number, remaining: number, overspent: boolean }[]
 }
 
 const props = defineProps<{
@@ -94,7 +112,9 @@ async function load() {
     data.value = await api.get<BudgetView>(
       `/api/budgets/${uid}?period=${props.period}&anchor=${props.anchor}`,
     )
-  } catch {} finally {
+  }
+  catch {}
+  finally {
     loading.value = false
   }
 }

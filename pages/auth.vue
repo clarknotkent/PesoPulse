@@ -1,9 +1,19 @@
 <template>
   <div class="auth-shell">
-    <div class="auth-glow" aria-hidden="true"></div>
+    <div
+      class="auth-glow"
+      aria-hidden="true"
+    />
 
-    <NuxtLink to="/" class="press back-link" aria-label="Back">
-      <Icon name="chevron-left" :size="13" />
+    <NuxtLink
+      to="/"
+      class="press back-link"
+      aria-label="Back"
+    >
+      <Icon
+        name="chevron-left"
+        :size="13"
+      />
       Back
     </NuxtLink>
 
@@ -12,8 +22,14 @@
         <Logo />
       </div>
 
-      <Transition name="heading" mode="out-in">
-        <div :key="mode" class="hero-text stagger-2">
+      <Transition
+        name="heading"
+        mode="out-in"
+      >
+        <div
+          :key="mode"
+          class="hero-text stagger-2"
+        >
           <h1 class="heading">
             {{ mode === 'signin' ? 'Welcome back' : 'Get started' }}
           </h1>
@@ -26,12 +42,20 @@
       </Transition>
 
       <Transition name="banner">
-        <p v-if="banner" class="banner">{{ banner }}</p>
+        <p
+          v-if="banner"
+          class="banner"
+        >
+          {{ banner }}
+        </p>
       </Transition>
 
       <div class="fields stagger-3">
         <label class="field">
-          <span class="field-icon"><Icon name="mail" :size="15" /></span>
+          <span class="field-icon"><Icon
+            name="mail"
+            :size="15"
+          /></span>
           <input
             v-model="email"
             type="email"
@@ -42,7 +66,10 @@
         </label>
 
         <label class="field">
-          <span class="field-icon"><Icon name="lock" :size="15" /></span>
+          <span class="field-icon"><Icon
+            name="lock"
+            :size="15"
+          /></span>
           <input
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
@@ -53,17 +80,23 @@
           <button
             type="button"
             class="press field-action"
-            @click="showPassword = !showPassword"
             :aria-label="showPassword ? 'Hide password' : 'Show password'"
             tabindex="-1"
+            @click="showPassword = !showPassword"
           >
-            <Icon :name="showPassword ? 'eye-off' : 'eye'" :size="15" />
+            <Icon
+              :name="showPassword ? 'eye-off' : 'eye'"
+              :size="15"
+            />
           </button>
         </label>
       </div>
 
       <div class="slot stagger-3">
-        <Transition name="slot" mode="out-in">
+        <Transition
+          name="slot"
+          mode="out-in"
+        >
           <button
             v-if="mode === 'signin'"
             key="forgot"
@@ -75,57 +108,102 @@
             {{ resetSending ? 'Sending…' : 'Forgot password?' }}
           </button>
 
-          <div v-else-if="password" key="strength" class="strength">
+          <div
+            v-else-if="password"
+            key="strength"
+            class="strength"
+          >
             <div class="strength-pips">
               <span
                 v-for="(r, i) in rules"
                 :key="r.id"
                 :class="['pip', r.ok ? 'is-on' : '']"
                 :style="{ transitionDelay: r.ok ? `${i * 40}ms` : '0ms' }"
-              ></span>
+              />
             </div>
             <p class="strength-meta">
-              <template v-if="passwordValid">Looks strong.</template>
-              <template v-else>{{ firstUnmetLabel }}</template>
+              <template v-if="passwordValid">
+                Looks strong.
+              </template>
+              <template v-else>
+                {{ firstUnmetLabel }}
+              </template>
             </p>
           </div>
 
-          <div v-else key="placeholder" class="slot-placeholder"></div>
+          <div
+            v-else
+            key="placeholder"
+            class="slot-placeholder"
+          />
         </Transition>
       </div>
 
-      <p v-if="error" class="error stagger-4">{{ error }}</p>
+      <p
+        v-if="error"
+        class="error stagger-4"
+      >
+        {{ error }}
+      </p>
 
       <button
-        @click="submit"
         :disabled="loading || googleLoading || (mode === 'signup' && !passwordValid)"
         class="press submit-btn stagger-4"
         type="button"
+        @click="submit"
       >
-        <Icon v-if="loading" name="loader" :size="15" class="spin" />
+        <Icon
+          v-if="loading"
+          name="loader"
+          :size="15"
+          class="spin"
+        />
         <span :class="['submit-label', loading ? 'is-loading' : '']">
           {{ mode === 'signin' ? 'Log in' : 'Create account' }}
         </span>
       </button>
 
       <div class="divider stagger-5">
-        <span></span>
+        <span />
         <span class="divider-text">or</span>
-        <span></span>
+        <span />
       </div>
 
       <button
-        @click="onGoogle"
         :disabled="googleLoading || loading"
         class="press google-btn stagger-5"
         type="button"
+        @click="onGoogle"
       >
-        <Icon v-if="googleLoading" name="loader" :size="15" class="spin" />
-        <svg v-else width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
-          <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
-          <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
-          <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
-          <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+        <Icon
+          v-if="googleLoading"
+          name="loader"
+          :size="15"
+          class="spin"
+        />
+        <svg
+          v-else
+          width="16"
+          height="16"
+          viewBox="0 0 18 18"
+          aria-hidden="true"
+        >
+          <path
+            fill="#4285F4"
+            d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
+          />
+          <path
+            fill="#34A853"
+            d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
+          />
+          <path
+            fill="#FBBC05"
+            d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
+          />
+          <path
+            fill="#EA4335"
+            d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
+          />
         </svg>
         <span>{{ googleLoading ? 'Opening Google…' : 'Continue with Google' }}</span>
       </button>
@@ -136,7 +214,9 @@
           type="button"
           class="press mode-toggle-btn"
           @click="mode = mode === 'signin' ? 'signup' : 'signin'"
-        >{{ mode === 'signin' ? 'Sign up' : 'Log in' }}</button>
+        >
+          {{ mode === 'signin' ? 'Sign up' : 'Log in' }}
+        </button>
       </p>
     </div>
 
@@ -167,11 +247,11 @@ const banner = computed<string>(() => {
   return ''
 })
 
-if (process.client && user.value) {
+if (import.meta.client && user.value) {
   await navigateTo(redirectTarget.value)
 }
 
-if (process.client && typeof sessionStorage !== 'undefined') {
+if (import.meta.client && typeof sessionStorage !== 'undefined') {
   const stored = sessionStorage.getItem('pesopulse:auth-error')
   if (stored) {
     sessionStorage.removeItem('pesopulse:auth-error')
@@ -183,7 +263,7 @@ const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const error = ref(
-  process.client && typeof sessionStorage !== 'undefined'
+  import.meta.client && typeof sessionStorage !== 'undefined'
     ? sessionStorage.getItem('pesopulse:auth-error') ?? ''
     : '',
 )
@@ -214,14 +294,17 @@ async function submit() {
   try {
     if (mode.value === 'signin') {
       await signIn(email.value, password.value)
-    } else {
+    }
+    else {
       await signUp(email.value, password.value)
     }
     await nextTick()
     await navigateTo(redirectTarget.value, { replace: true })
-  } catch (e: unknown) {
+  }
+  catch (e: unknown) {
     error.value = (e as { message?: string })?.message ?? 'Authentication failed'
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -235,14 +318,17 @@ async function onGoogle() {
       await nextTick()
       await navigateTo(redirectTarget.value, { replace: true })
     }
-  } catch (e: unknown) {
+  }
+  catch (e: unknown) {
     const code = (e as { code?: string })?.code
     if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
       // dismissed silently
-    } else {
+    }
+    else {
       error.value = (e as { message?: string })?.message ?? 'Google sign-in failed'
     }
-  } finally {
+  }
+  finally {
     googleLoading.value = false
   }
 }
@@ -257,16 +343,20 @@ async function onForgotPassword() {
   try {
     await sendPasswordReset(email.value.trim())
     toast.success('Sent', `Reset link sent to ${email.value.trim()}.`)
-  } catch (e: unknown) {
+  }
+  catch (e: unknown) {
     const code = (e as { code?: string })?.code
     if (code === 'auth/user-not-found') {
       error.value = 'No account with that email.'
-    } else if (code === 'auth/invalid-email') {
+    }
+    else if (code === 'auth/invalid-email') {
       error.value = 'That email looks invalid.'
-    } else {
+    }
+    else {
       error.value = (e as { message?: string })?.message ?? 'Could not send reset link.'
     }
-  } finally {
+  }
+  finally {
     resetSending.value = false
   }
 }

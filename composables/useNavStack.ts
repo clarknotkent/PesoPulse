@@ -15,7 +15,7 @@ export function useNavStack() {
   const transitionName = useState<string>('nav:transition', () => 'fade')
   const isPop = useState<boolean>('nav:isPop', () => false)
 
-  if (process.client && !listenerRegistered) {
+  if (import.meta.client && !listenerRegistered) {
     listenerRegistered = true
 
     window.addEventListener('popstate', () => {
@@ -37,11 +37,14 @@ export function useNavStack() {
 
       if (toTab && fromTab) {
         transitionName.value = 'fade'
-      } else if (isPop.value) {
+      }
+      else if (isPop.value) {
         transitionName.value = 'slide-pop'
-      } else if (toTab && !fromTab) {
+      }
+      else if (toTab && !fromTab) {
         transitionName.value = 'slide-pop'
-      } else {
+      }
+      else {
         transitionName.value = 'slide-push'
       }
 

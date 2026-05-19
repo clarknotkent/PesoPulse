@@ -1,12 +1,26 @@
+import logging
 import os
 import uuid
-import logging
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
+
 from app.config import get_firebase_app
-from app.routes import auth, transactions, categories, receipts, sharing, stats, budgets, recurring, goals, notifications, audit as audit_routes
+from app.routes import (
+    audit as audit_routes,
+    auth,
+    budgets,
+    categories,
+    goals,
+    notifications,
+    receipts,
+    recurring,
+    sharing,
+    stats,
+    transactions,
+)
 
 get_firebase_app()
 

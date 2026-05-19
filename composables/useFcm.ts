@@ -32,9 +32,9 @@ export function useFcm() {
     }
     if (!/^[A-Za-z0-9_-]{80,100}$/.test(vapidKey)) {
       console.warn(
-        'FCM disabled: NUXT_PUBLIC_FIREBASE_VAPID_KEY format invalid. ' +
-        'Expected ~88-char base64url Web Push certificate key from Firebase Console → ' +
-        'Project Settings → Cloud Messaging → Web Push certificates.',
+        'FCM disabled: NUXT_PUBLIC_FIREBASE_VAPID_KEY format invalid. '
+        + 'Expected ~88-char base64url Web Push certificate key from Firebase Console → '
+        + 'Project Settings → Cloud Messaging → Web Push certificates.',
       )
       return false
     }
@@ -71,7 +71,8 @@ export function useFcm() {
       })
 
       return true
-    } catch (e) {
+    }
+    catch (e) {
       console.error('FCM registration failed', e)
       return false
     }
