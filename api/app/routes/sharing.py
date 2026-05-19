@@ -1,11 +1,12 @@
 from datetime import datetime, timezone
 from uuid import uuid4
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from firebase_admin import auth as firebase_auth
 from google.cloud.firestore_v1.base_query import FieldFilter
 from app.config import get_db
 from app.middleware import get_current_user, require_owner
+from app.audit import audit_log
 
 router = APIRouter()
 
@@ -27,6 +28,7 @@ async def list_grants(
 
 @router.post("/{owner_id}", status_code=status.HTTP_201_CREATED)
 async def grant_access(
+    request: Request,
     owner_id: str,
     payload: ShareGrant,
     current_user: dict = Depends(get_current_user),
@@ -60,11 +62,20 @@ async def grant_access(
         "grantedAt": datetime.now(timezone.utc).isoformat(),
     }
     db.collection("sharing_permissions").document(doc["id"]).set(doc)
+    audit_log(
+        actor_uid=current_user.get("uid", ""),
+        action="sharing.grant",
+        target_owner_id=owner_id,
+        target_doc_id=doc["id"],
+        request=request,
+        metadata={"viewerUid": viewer.uid, "viewerEmail": payload.viewerEmail},
+    )
     return doc
 
 
 @router.delete("/{owner_id}/{permission_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def revoke_access(
+    request: Request,
     owner_id: str,
     permission_id: str,
     current_user: dict = Depends(get_current_user),
@@ -79,4 +90,13 @@ async def revoke_access(
     if doc.to_dict().get("ownerId") != owner_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Permission not found")
 
+    payload = doc.to_dict() or {}
     ref.delete()
+    audit_log(
+        actor_uid=current_user.get("uid", ""),
+        action="sharing.revoke",
+        target_owner_id=owner_id,
+        target_doc_id=permission_id,
+        request=request,
+        metadata={"viewerUid": payload.get("viewerId"), "viewerEmail": payload.get("viewerEmail")},
+    )

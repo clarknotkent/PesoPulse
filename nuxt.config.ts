@@ -7,7 +7,8 @@ export default defineNuxtConfig({
   components: [{ path: '~/components', pathPrefix: false }],
 
   app: {
-    pageTransition: { name: 'fade', mode: 'out-in' },
+    pageTransition: false,
+    layoutTransition: false,
     head: {
       meta: [
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
@@ -55,6 +56,32 @@ export default defineNuxtConfig({
         changeOrigin: true
       }
     }
+  },
+
+  routeRules: {
+    '/**': {
+      headers: {
+        'Content-Security-Policy': [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googleapis.com https://apis.google.com",
+          "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://fcmregistrations.googleapis.com https://apis.google.com https://accounts.google.com https://www.google.com wss://*.firebaseio.com",
+          "img-src 'self' data: blob: https://*.googleusercontent.com",
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+          "font-src 'self' https://fonts.gstatic.com",
+          "frame-src https://*.firebaseapp.com https://accounts.google.com https://apis.google.com",
+          "worker-src 'self'",
+          "manifest-src 'self'",
+          "frame-ancestors 'none'",
+          "base-uri 'self'",
+          "form-action 'self'",
+        ].join('; '),
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+        'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+      },
+    },
   },
 
   pwa: {

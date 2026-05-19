@@ -1,27 +1,49 @@
 export function useApi() {
-  const { idToken } = useAuth()
+  const { idToken, signOut } = useAuth()
 
-  async function authHeaders(): Promise<Record<string, string>> {
-    const token = await idToken()
+  async function authHeaders(forceRefresh: boolean = false): Promise<Record<string, string>> {
+    const token = await idToken(forceRefresh)
     if (!token) throw new Error('Not authenticated')
     return { Authorization: `Bearer ${token}` }
   }
 
-  async function get<T>(path: string): Promise<T> {
-    return $fetch<T>(path, { headers: await authHeaders() })
+  type FetchOpts = { method?: string; body?: unknown }
+
+  async function request<T>(path: string, opts: FetchOpts = {}): Promise<T> {
+    const method = opts.method ?? 'GET'
+    try {
+      return await $fetch<T>(path, { method, body: opts.body, headers: await authHeaders() })
+    } catch (e: unknown) {
+      const status = (e as { status?: number; statusCode?: number })?.status
+        ?? (e as { statusCode?: number })?.statusCode
+      const detail = (e as { data?: { detail?: string } })?.data?.detail
+
+      if (status === 401) {
+        try {
+          return await $fetch<T>(path, { method, body: opts.body, headers: await authHeaders(true) })
+        } catch (retry: unknown) {
+          const retryStatus = (retry as { status?: number; statusCode?: number })?.status
+            ?? (retry as { statusCode?: number })?.statusCode
+          if (retryStatus === 401) {
+            await signOut()
+            await navigateTo('/auth?reason=session_expired')
+          }
+          throw retry
+        }
+      }
+
+      if (status === 403 && detail === 'email_not_verified') {
+        await navigateTo('/auth/verify')
+      }
+
+      throw e
+    }
   }
 
-  async function post<T>(path: string, body: unknown): Promise<T> {
-    return $fetch<T>(path, { method: 'POST', body, headers: await authHeaders() })
+  return {
+    get: <T>(path: string) => request<T>(path),
+    post: <T>(path: string, body?: unknown) => request<T>(path, { method: 'POST', body }),
+    put: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PUT', body }),
+    del: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
   }
-
-  async function put<T>(path: string, body: unknown): Promise<T> {
-    return $fetch<T>(path, { method: 'PUT', body, headers: await authHeaders() })
-  }
-
-  async function del<T>(path: string): Promise<T> {
-    return $fetch<T>(path, { method: 'DELETE', headers: await authHeaders() })
-  }
-
-  return { get, post, put, del }
 }

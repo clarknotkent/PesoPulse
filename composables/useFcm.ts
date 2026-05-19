@@ -44,15 +44,8 @@ export function useFcm() {
       status.value = perm as NotifStatus
       if (perm !== 'granted') return false
 
-      const swParams = new URLSearchParams({
-        apiKey: pub.firebaseApiKey as string,
-        authDomain: pub.firebaseAuthDomain as string,
-        projectId: pub.firebaseProjectId as string,
-        appId: pub.firebaseAppId as string,
-        messagingSenderId: pub.firebaseMessagingSenderId as string,
-      }).toString()
       const swReg = await navigator.serviceWorker.register(
-        `/firebase-messaging-sw.js?${swParams}`,
+        '/firebase-messaging-sw.js',
         { scope: '/' },
       )
       const app = nuxtApp.$firebaseApp as FirebaseApp

@@ -14,6 +14,8 @@
         <p class="text-[var(--text-muted)] text-sm">Track every peso. Plan every week.</p>
       </div>
 
+      <p v-if="banner" class="mb-4 bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs rounded-lg px-3 py-2">{{ banner }}</p>
+
       <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-5 space-y-4">
         <div class="flex rounded-lg bg-[var(--bg-input)] p-1">
           <button
@@ -27,7 +29,6 @@
           >{{ tab.label }}</button>
         </div>
 
-        <!-- Google primary -->
         <button
           @click="onGoogle"
           :disabled="googleLoading || loading"
@@ -43,7 +44,6 @@
           <span>{{ googleLoading ? 'Redirecting…' : 'Continue with Google' }}</span>
         </button>
 
-        <!-- divider -->
         <div class="flex items-center gap-3 py-1">
           <span class="flex-1 h-px bg-[var(--border)]"></span>
           <span class="text-[var(--text-subtle)] text-[10px] uppercase tracking-[0.16em]">or email</span>
@@ -61,15 +61,26 @@
           v-model="password"
           type="password"
           placeholder="Password"
-          autocomplete="current-password"
+          :autocomplete="mode === 'signup' ? 'new-password' : 'current-password'"
           class="field w-full bg-[var(--bg-input)] text-[var(--text)] placeholder-[var(--text-subtle)] rounded-lg px-4 py-3 text-sm outline-none"
         />
+
+        <div v-if="mode === 'signup' && password" class="space-y-1.5">
+          <div class="h-1 bg-[var(--bg-input)] rounded-full overflow-hidden">
+            <div :class="['h-full transition-all duration-300', strengthClass]" :style="{ width: strengthPct + '%' }"></div>
+          </div>
+          <ul class="text-[10px] space-y-0.5">
+            <li v-for="r in rules" :key="r.id" :class="r.ok ? 'text-emerald-400' : 'text-[var(--text-subtle)]'">
+              {{ r.ok ? '✓' : '·' }} {{ r.label }}
+            </li>
+          </ul>
+        </div>
 
         <p v-if="error" class="text-[var(--c-expense)] text-xs">{{ error }}</p>
 
         <button
           @click="submit"
-          :disabled="loading || googleLoading"
+          :disabled="loading || googleLoading || (mode === 'signup' && !passwordValid)"
           class="press w-full bg-emerald-500 text-white font-semibold py-3 rounded-lg text-sm disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
         >
           <Icon v-if="loading" name="loader" :size="16" class="animate-spin" />
@@ -85,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: false })
+definePageMeta({ layout: false, pageTransition: false, layoutTransition: false })
 
 const { signIn, signUp, signInWithGoogle, user } = useAuth()
 const route = useRoute()
@@ -94,6 +105,13 @@ const redirectTarget = computed<string>(() => {
   const r = route.query.redirect
   if (typeof r === 'string' && r.startsWith('/') && !r.startsWith('//')) return r
   return '/dashboard'
+})
+
+const banner = computed<string>(() => {
+  const reason = route.query.reason
+  if (reason === 'idle') return 'Signed out after inactivity. Please sign in again.'
+  if (reason === 'session_expired') return 'Your session expired. Please sign in again.'
+  return ''
 })
 
 if (process.client && user.value) {
@@ -123,8 +141,31 @@ const error = ref(
 const loading = ref(false)
 const googleLoading = ref(false)
 
+const rules = computed(() => {
+  const p = password.value
+  return [
+    { id: 'len', label: 'At least 10 characters', ok: p.length >= 10 },
+    { id: 'num', label: 'Contains a number', ok: /[0-9]/.test(p) },
+    { id: 'sym', label: 'Contains a symbol (!@#$…)', ok: /[^A-Za-z0-9]/.test(p) },
+    { id: 'case', label: 'Mixes upper & lower case', ok: /[a-z]/.test(p) && /[A-Z]/.test(p) },
+  ]
+})
+
+const passwordValid = computed<boolean>(() => rules.value.every((r) => r.ok))
+const strengthPct = computed<number>(() => (rules.value.filter((r) => r.ok).length / rules.value.length) * 100)
+const strengthClass = computed<string>(() => {
+  const pct = strengthPct.value
+  if (pct < 50) return 'bg-red-500'
+  if (pct < 100) return 'bg-amber-500'
+  return 'bg-emerald-500'
+})
+
 async function submit() {
   error.value = ''
+  if (mode.value === 'signup' && !passwordValid.value) {
+    error.value = 'Password does not meet complexity rules.'
+    return
+  }
   loading.value = true
   try {
     if (mode.value === 'signin') {
@@ -132,7 +173,8 @@ async function submit() {
     } else {
       await signUp(email.value, password.value)
     }
-    await navigateTo(redirectTarget.value)
+    await nextTick()
+    await navigateTo(redirectTarget.value, { replace: true })
   } catch (e: unknown) {
     error.value = (e as { message?: string })?.message ?? 'Authentication failed'
   } finally {
@@ -146,12 +188,13 @@ async function onGoogle() {
   try {
     await signInWithGoogle()
     if (user.value) {
-      await navigateTo(redirectTarget.value)
+      await nextTick()
+      await navigateTo(redirectTarget.value, { replace: true })
     }
   } catch (e: unknown) {
     const code = (e as { code?: string })?.code
     if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
-      // user dismissed — silent
+      // dismissed
     } else {
       error.value = (e as { message?: string })?.message ?? 'Google sign-in failed'
     }

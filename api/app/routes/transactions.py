@@ -3,12 +3,13 @@ from typing import Literal, Optional
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from google.cloud.firestore_v1.base_query import FieldFilter
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.config import get_db
 from app.middleware import get_current_user, require_owner, require_owner_or_viewer
+from app.audit import audit_log
 from app.routes.recurring import materialize_recurring
 from app.routes.budgets import _build_budget_view, _txn_period_anchor
 from app.routes.notifications import send_overspend_push
@@ -60,6 +61,7 @@ class TransactionUpdate(BaseModel):
 
 @router.get("/{owner_id}")
 async def list_transactions(
+    request: Request,
     owner_id: str,
     from_: Optional[str] = Query(default=None, alias="from"),
     to: Optional[str] = None,
@@ -111,6 +113,7 @@ async def list_transactions(
 
 @router.post("/{owner_id}", status_code=status.HTTP_201_CREATED)
 async def create_transaction(
+    request: Request,
     owner_id: str,
     payload: TransactionCreate,
     current_user: dict = Depends(get_current_user),
@@ -132,6 +135,15 @@ async def create_transaction(
         "createdAt": now_utc.isoformat(),
     }
     db.collection("transactions").document(doc_id).set(transaction)
+
+    audit_log(
+        actor_uid=current_user.get("uid", ""),
+        action="txn.create",
+        target_owner_id=owner_id,
+        target_doc_id=doc_id,
+        request=request,
+        metadata={"amount": payload.amount, "type": payload.type, "category": payload.category},
+    )
 
     if payload.type == "expense" and resolved_date == today_ph:
         try:
@@ -162,6 +174,7 @@ async def create_transaction(
 
 @router.put("/{owner_id}/{transaction_id}")
 async def update_transaction(
+    request: Request,
     owner_id: str,
     transaction_id: str,
     payload: TransactionUpdate,
@@ -177,11 +190,20 @@ async def update_transaction(
 
     updates = payload.model_dump(exclude_unset=True)
     ref.update(updates)
+    audit_log(
+        actor_uid=current_user.get("uid", ""),
+        action="txn.update",
+        target_owner_id=owner_id,
+        target_doc_id=transaction_id,
+        request=request,
+        metadata={"fields": list(updates.keys())},
+    )
     return {**doc.to_dict(), **updates}
 
 
 @router.delete("/{owner_id}/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_transaction(
+    request: Request,
     owner_id: str,
     transaction_id: str,
     current_user: dict = Depends(get_current_user),
@@ -195,3 +217,10 @@ async def delete_transaction(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
 
     ref.delete()
+    audit_log(
+        actor_uid=current_user.get("uid", ""),
+        action="txn.delete",
+        target_owner_id=owner_id,
+        target_doc_id=transaction_id,
+        request=request,
+    )

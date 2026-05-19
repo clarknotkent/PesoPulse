@@ -19,11 +19,17 @@ api/venv/
 .env
 .env.*
 !.env.example
+.env.local
 api/serviceAccountKey.json
 *.pem
 *.key
 *-credentials.json
 secrets/
+
+# ── Firebase ─────────────────────────────────────────────────────────────────
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
 
 # ── AI / Agent / Prompt Artifacts ────────────────────────────────────────────
 # Claude Code

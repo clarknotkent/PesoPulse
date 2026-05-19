@@ -1,7 +1,7 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   if (process.server) return
 
-  const { user, initialized } = useAuth()
+  const { user, initialized, emailVerified, initIdleWatcher } = useAuth()
 
   if (!initialized.value) {
     await new Promise<void>((resolve) => {
@@ -18,4 +18,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const target = to.fullPath && to.fullPath !== '/' ? to.fullPath : '/dashboard'
     return navigateTo(`/auth?redirect=${encodeURIComponent(target)}`)
   }
+
+  initIdleWatcher()
 })

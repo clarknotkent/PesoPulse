@@ -1,14 +1,14 @@
 <template>
   <div>
-    <NuxtPage :transition="{ name: transitionName, mode: 'out-in' }" />
+    <NuxtPage />
     <BottomNav />
     <ToastHost />
+    <ReauthModal />
   </div>
 </template>
 
 <script setup lang="ts">
 const { initTheme } = useTheme()
-const { transitionName } = useNavStack()
 
 onMounted(() => {
   initTheme()

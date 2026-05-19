@@ -11,12 +11,42 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
 ) -> dict:
     try:
-        decoded: dict = auth.verify_id_token(credentials.credentials)
+        decoded: dict = auth.verify_id_token(
+            credentials.credentials, check_revoked=True
+        )
         return decoded
-    except Exception:
+    except auth.ExpiredIdTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
+            detail="token_expired",
+        )
+    except auth.RevokedIdTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="token_revoked",
+        )
+    except auth.UserDisabledError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="user_disabled",
+        )
+    except auth.InvalidIdTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="token_invalid",
+        )
+    except auth.CertificateFetchError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="auth_unavailable",
+        )
+
+
+async def require_verified_email(current_user: dict) -> None:
+    if not current_user.get("email_verified", False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="email_not_verified",
         )
 
 

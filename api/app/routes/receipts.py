@@ -1,11 +1,12 @@
 import json
 import os
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from google import genai
 from google.genai import types
 
 from app.middleware import get_current_user
+from app.audit import audit_log
 
 router = APIRouter()
 
@@ -39,9 +40,11 @@ def _gemini_client() -> genai.Client:
 
 @router.post("/parse")
 async def parse_receipt(
+    request: Request,
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
 ) -> dict:
+    uid = current_user.get("uid", "")
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -65,6 +68,13 @@ async def parse_receipt(
             contents=[_PARSE_PROMPT, image_part],
         )
         parsed: dict = json.loads(response.text.strip())
+        audit_log(
+            actor_uid=uid,
+            action="receipt.scan",
+            target_owner_id=uid,
+            request=request,
+            metadata={"merchant": parsed.get("merchant"), "total": parsed.get("total")},
+        )
         return {"success": True, "data": parsed}
     except json.JSONDecodeError as exc:
         raise HTTPException(

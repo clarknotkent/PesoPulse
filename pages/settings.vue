@@ -16,7 +16,7 @@
       <!-- Tab toggle -->
       <div class="flex gap-1 bg-[var(--bg-input)] rounded-xl p-1 overflow-x-auto">
         <button
-          v-for="tab in (['categories', 'sharing', 'recurring', 'appearance', 'app'] as const)"
+          v-for="tab in (['categories', 'sharing', 'recurring', 'security', 'appearance', 'app'] as const)"
           :key="tab"
           @click="activeTab = tab"
           :class="[
@@ -196,6 +196,62 @@
       </section>
     </div>
 
+    <!-- Security tab -->
+    <div v-if="activeTab === 'security'" class="page-body">
+      <section class="page-section">
+        <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-4 space-y-3">
+          <p class="label">Email</p>
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-[var(--text)] text-sm font-medium truncate">{{ user?.email }}</p>
+              <p class="text-[var(--text-subtle)] text-xs mt-0.5">
+                <span v-if="emailVerified" class="text-emerald-400">✓ Verified</span>
+                <span v-else class="text-amber-400">! Not verified</span>
+              </p>
+            </div>
+            <button
+              v-if="!emailVerified"
+              @click="onResendVerification"
+              :disabled="verifyBusy"
+              class="press shrink-0 bg-[var(--bg-input)] text-[var(--text)] text-xs px-3 py-1.5 rounded-lg disabled:opacity-50"
+            >{{ verifyBusy ? 'Sending…' : 'Resend' }}</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-4 space-y-3">
+          <p class="label">Sessions</p>
+          <p class="text-[var(--text-subtle)] text-xs leading-relaxed">
+            Sign out of every browser and device using your account. Use this if you lost a device.
+          </p>
+          <button
+            @click="onRevokeAll"
+            :disabled="revokeBusy"
+            class="press w-full bg-red-500/10 border border-red-500/30 text-red-300 font-medium py-3 rounded-lg text-sm disabled:opacity-50"
+          >{{ revokeBusy ? 'Revoking…' : 'Sign out everywhere' }}</button>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <p class="label mb-3">Recent activity</p>
+        <p v-if="auditLoading" class="text-[var(--text-subtle)] text-sm py-2">Loading…</p>
+        <p v-else-if="auditEntries.length === 0" class="text-[var(--text-subtle)] text-sm py-2">No recorded activity yet.</p>
+        <div v-else class="border-t border-[var(--border)]">
+          <div
+            v-for="entry in auditEntries"
+            :key="entry.id"
+            class="py-3 border-b border-[var(--border)] flex items-start justify-between gap-3"
+          >
+            <div class="min-w-0">
+              <p class="text-[var(--text)] text-sm font-medium">{{ formatAction(entry.action) }}</p>
+              <p class="text-[var(--text-subtle)] text-[11px] mt-0.5 tabular-nums">{{ formatTs(entry.ts) }}<span v-if="entry.ip"> · {{ entry.ip }}</span></p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
     <!-- Appearance tab -->
     <div v-if="activeTab === 'appearance'" class="page-body">
       <section class="page-section">
@@ -279,17 +335,98 @@ interface Grant {
   grantedAt: string
 }
 
-const { user, signOut } = useAuth()
+const { user, signOut, emailVerified, sendVerification, signOutEverywhere } = useAuth()
+const { requireFresh } = useReauthGate()
+const toast = useToast()
 const api = useApi()
+
+interface AuditEntry {
+  id: string
+  action: string
+  ts: string
+  ip: string | null
+  targetDocId: string | null
+}
+
+const auditEntries = ref<AuditEntry[]>([])
+const auditLoading = ref(false)
+const verifyBusy = ref(false)
+const revokeBusy = ref(false)
+
+const ACTION_LABELS: Record<string, string> = {
+  'auth.register': 'Account registered',
+  'auth.revoke_tokens': 'Signed out everywhere',
+  'txn.create': 'Transaction created',
+  'txn.update': 'Transaction edited',
+  'txn.delete': 'Transaction deleted',
+  'sharing.grant': 'Granted view access',
+  'sharing.revoke': 'Revoked view access',
+  'receipt.scan': 'Receipt scanned',
+}
+
+function formatAction(a: string): string {
+  return ACTION_LABELS[a] ?? a
+}
+
+function formatTs(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString('en-PH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return iso
+  }
+}
+
+async function loadAuditLog(): Promise<void> {
+  const uid = user.value?.uid
+  if (!uid) return
+  auditLoading.value = true
+  try {
+    auditEntries.value = await api.get<AuditEntry[]>(`/api/audit/${uid}?limit=30`)
+  } catch {
+    auditEntries.value = []
+  } finally {
+    auditLoading.value = false
+  }
+}
+
+async function onResendVerification(): Promise<void> {
+  verifyBusy.value = true
+  try {
+    await sendVerification()
+    toast.info('Sent', 'Verification email sent.')
+  } catch {
+    toast.error('Failed', 'Could not send verification email.')
+  } finally {
+    verifyBusy.value = false
+  }
+}
+
+async function onRevokeAll(): Promise<void> {
+  const fresh = await requireFresh('Sign out all devices')
+  if (!fresh) return
+  revokeBusy.value = true
+  try {
+    await signOutEverywhere()
+  } catch {
+    toast.error('Failed', 'Could not revoke sessions.')
+    revokeBusy.value = false
+  }
+}
+
 const { choice: themeChoice, effective: effectiveTheme, setTheme } = useTheme()
 const { canInstall, installed, prompt: promptInstall, isIos } = useInstallPrompt()
 
-type Tab = 'categories' | 'sharing' | 'recurring' | 'appearance' | 'app'
+type Tab = 'categories' | 'sharing' | 'recurring' | 'security' | 'appearance' | 'app'
 const activeTab = ref<Tab>('categories')
+
+watch(activeTab, (tab) => {
+  if (tab === 'security') loadAuditLog()
+})
 
 function tabLabel(t: Tab): string {
   if (t === 'appearance') return 'Theme'
   if (t === 'app') return 'App'
+  if (t === 'security') return 'Security'
   return t
 }
 
@@ -420,6 +557,8 @@ async function grantAccess() {
 }
 
 async function revokeGrant(id: string) {
+  const fresh = await requireFresh('Revoke shared access')
+  if (!fresh) return
   const uid = user.value!.uid
   try {
     await api.del(`/api/sharing/${uid}/${id}`)
