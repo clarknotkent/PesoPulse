@@ -219,7 +219,9 @@ async function remove(id: string) {
     await api.del(`/api/goals/${uid}/${id}`)
     goals.value = goals.value.filter((g) => g.id !== id)
   }
-  catch {}
+  catch (e) {
+    void e
+  }
 }
 
 onMounted(load)

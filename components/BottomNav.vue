@@ -62,8 +62,6 @@ const items: NavItem[] = [
 ]
 
 const route = useRoute()
-const router = useRouter()
-
 const hiddenRoutes = ['/', '/auth', '/login', '/offline']
 
 const visible = computed(() => {

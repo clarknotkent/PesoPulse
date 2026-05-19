@@ -1,7 +1,7 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   if (import.meta.server) return
 
-  const { user, initialized, emailVerified, initIdleWatcher } = useAuth()
+  const { user, initialized, initIdleWatcher } = useAuth()
 
   if (!initialized.value) {
     await new Promise<void>((resolve) => {

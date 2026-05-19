@@ -433,7 +433,9 @@ async function loadCategories() {
     const all = await api.get<Category[]>(`/api/categories/${uid}`)
     expenseCategories.value = all.filter((c) => c.type === 'expense')
   }
-  catch {}
+  catch (e) {
+    void e
+  }
 }
 
 async function saveTotal() {

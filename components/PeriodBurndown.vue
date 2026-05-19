@@ -113,7 +113,9 @@ async function load() {
       `/api/budgets/${uid}?period=${props.period}&anchor=${props.anchor}`,
     )
   }
-  catch {}
+  catch (e) {
+    void e
+  }
   finally {
     loading.value = false
   }

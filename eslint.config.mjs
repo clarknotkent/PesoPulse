@@ -34,7 +34,7 @@ export default withNuxt({
 
     // ── Stylistic ────────────────────────────────────────────────────────
     '@stylistic/indent': ['error', 2],
-    '@stylistic/quotes': ['error', 'single', { avoidEscape: true, allowTemplateLiterals: true }],
+    '@stylistic/quotes': ['error', 'single', { avoidEscape: true, allowTemplateLiterals: 'always' }],
     '@stylistic/semi': ['error', 'never'],
     '@stylistic/comma-dangle': ['error', 'always-multiline'],
     '@stylistic/object-curly-spacing': ['error', 'always'],

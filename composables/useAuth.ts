@@ -10,7 +10,6 @@ import {
   EmailAuthProvider,
   GoogleAuthProvider,
   signInWithPopup,
-  signInWithRedirect,
   type Auth,
   type User,
 } from 'firebase/auth'
@@ -171,14 +170,6 @@ export function useAuth() {
       // verification email send is best-effort
     }
     await registerOnApi(cred.user)
-  }
-
-  function shouldUseRedirect(): boolean {
-    if (typeof window === 'undefined') return true
-    const standalone = window.matchMedia?.('(display-mode: standalone)').matches
-    const iosStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone === true
-    const mobile = /Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-    return Boolean(standalone || iosStandalone || mobile)
   }
 
   async function signInWithGoogle(): Promise<void> {

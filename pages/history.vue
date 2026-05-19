@@ -216,8 +216,12 @@ const api = useApi()
 
 const view = ref<'calendar' | 'list'>('calendar')
 
-function pad(n: number): string { return String(n).padStart(2, '0') }
-function isoFromDate(d: Date): string { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` }
+function pad(n: number): string {
+  return String(n).padStart(2, '0')
+}
+function isoFromDate(d: Date): string {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
 
 const today = new Date()
 const anchor = ref<string>(`${today.getFullYear()}-${pad(today.getMonth() + 1)}-01`)
@@ -243,7 +247,9 @@ async function loadCategories() {
   try {
     categories.value = await api.get<Category[]>(`/api/categories/${uid}`)
   }
-  catch {}
+  catch (e) {
+    void e
+  }
 }
 
 async function loadMonth() {
@@ -344,7 +350,9 @@ async function onEditSave(payload: {
     if (idx !== -1) txns.value[idx] = updated
     editingTx.value = null
   }
-  catch {}
+  catch (e) {
+    void e
+  }
 }
 
 async function onEditDelete(id: string) {
@@ -354,7 +362,9 @@ async function onEditDelete(id: string) {
     txns.value = txns.value.filter((t) => t.id !== id)
     editingTx.value = null
   }
-  catch {}
+  catch (e) {
+    void e
+  }
 }
 
 onMounted(() => {

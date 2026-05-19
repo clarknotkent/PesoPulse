@@ -247,8 +247,6 @@ const form = reactive({
   endDate: '',
 })
 
-const filteredCategories = computed(() => categories.value.filter((c) => c.type === form.type))
-
 async function load() {
   const uid = user.value?.uid
   if (!uid) return
@@ -313,7 +311,9 @@ async function togglePause(r: Rule) {
     const idx = rules.value.findIndex((x) => x.id === r.id)
     if (idx !== -1) rules.value[idx] = updated
   }
-  catch {}
+  catch (e) {
+    void e
+  }
 }
 
 async function remove(id: string) {
@@ -322,7 +322,9 @@ async function remove(id: string) {
     await api.del(`/api/recurring/${uid}/${id}`)
     rules.value = rules.value.filter((r) => r.id !== id)
   }
-  catch {}
+  catch (e) {
+    void e
+  }
 }
 
 onMounted(load)

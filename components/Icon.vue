@@ -54,6 +54,7 @@ import {
   Mail,
   Lock,
 } from 'lucide-vue-next'
+import type { Component } from 'vue'
 
 defineOptions({ inheritAttrs: false })
 
@@ -71,7 +72,7 @@ const props = withDefaults(
   },
 )
 
-const map: Record<string, any> = {
+const map: Record<string, Component> = {
   'home': Home,
   'stats': BarChart3,
   'plus': Plus,

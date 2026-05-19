@@ -23,7 +23,9 @@ function writeStorage<T>(key: string, value: T): void {
   try {
     sessionStorage.setItem(storageKey(key), JSON.stringify(value))
   }
-  catch {}
+  catch (e) {
+    void e
+  }
 }
 
 export interface UseCacheResult<T> {

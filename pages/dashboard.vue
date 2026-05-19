@@ -383,7 +383,9 @@ function setHeroPeriod(p: HeroPeriod) {
   if (p === heroPeriod.value) return
   chipFlicker.value = true
   heroPeriod.value = p
-  setTimeout(() => { chipFlicker.value = false }, 140)
+  setTimeout(() => {
+    chipFlicker.value = false
+  }, 140)
 }
 
 const periodLabel = computed(() => {

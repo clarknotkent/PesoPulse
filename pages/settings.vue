@@ -640,7 +640,9 @@ async function loadCategories() {
   try {
     categories.value = await api.get<Category[]>(`/api/categories/${uid}`)
   }
-  catch {}
+  catch (e) {
+    void e
+  }
 }
 
 async function loadGrants() {
@@ -649,7 +651,9 @@ async function loadGrants() {
   try {
     grants.value = await api.get<Grant[]>(`/api/sharing/${uid}`)
   }
-  catch {}
+  catch (e) {
+    void e
+  }
 }
 
 async function addCategory() {
@@ -683,7 +687,9 @@ async function deleteCategory(id: string) {
     await api.del(`/api/categories/${uid}/${id}`)
     categories.value = categories.value.filter((c) => c.id !== id)
   }
-  catch {}
+  catch (e) {
+    void e
+  }
 }
 
 async function grantAccess() {
@@ -728,13 +734,17 @@ async function revokeGrant(id: string) {
     await api.del(`/api/sharing/${uid}/${id}`)
     grants.value = grants.value.filter((g) => g.id !== id)
   }
-  catch {}
+  catch (e) {
+    void e
+  }
 }
 
 async function copyLink() {
   await navigator.clipboard.writeText(shareUrl.value)
   copied.value = true
-  setTimeout(() => { copied.value = false }, 2000)
+  setTimeout(() => {
+    copied.value = false
+  }, 2000)
 }
 
 onMounted(() => {
