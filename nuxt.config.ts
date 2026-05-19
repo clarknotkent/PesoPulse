@@ -1,10 +1,8 @@
 export default defineNuxtConfig({
-  compatibilityDate: '2026-05-17',
+  modules: ['@nuxtjs/tailwindcss', '@vite-pwa/nuxt', '@nuxt/eslint'],
   ssr: false,
-  devtools: { enabled: true },
-  modules: ['@nuxtjs/tailwindcss', '@vite-pwa/nuxt'],
-  css: ['~/assets/css/main.css'],
   components: [{ path: '~/components', pathPrefix: false }],
+  devtools: { enabled: true },
 
   app: {
     pageTransition: false,
@@ -31,6 +29,8 @@ export default defineNuxtConfig({
     },
   },
 
+  css: ['~/assets/css/main.css'],
+
   router: {
     options: {
       scrollBehaviorType: 'smooth',
@@ -49,15 +49,6 @@ export default defineNuxtConfig({
     },
   },
 
-  nitro: {
-    devProxy: {
-      '/api': {
-        target: 'http://127.0.0.1:8000/api',
-        changeOrigin: true
-      }
-    }
-  },
-
   routeRules: {
     '/**': {
       headers: {
@@ -68,7 +59,7 @@ export default defineNuxtConfig({
           "img-src 'self' data: blob: https://*.googleusercontent.com",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
           "font-src 'self' https://fonts.gstatic.com",
-          "frame-src https://*.firebaseapp.com https://accounts.google.com https://apis.google.com",
+          'frame-src https://*.firebaseapp.com https://accounts.google.com https://apis.google.com',
           "worker-src 'self'",
           "manifest-src 'self'",
           "frame-ancestors 'none'",
@@ -81,6 +72,22 @@ export default defineNuxtConfig({
         'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
         'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
       },
+    },
+  },
+  compatibilityDate: '2026-05-17',
+
+  nitro: {
+    devProxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8000/api',
+        changeOrigin: true,
+      },
+    },
+  },
+
+  eslint: {
+    config: {
+      stylistic: true,
     },
   },
 
